@@ -1,6 +1,6 @@
 /* 75 Hard — service worker: offline shell + scheduled reminder notifications */
 
-const CACHE = "75hard-v1";
+const CACHE = "75hard-v2";
 const SCHEDULE_KEY = "/__reminder_schedule__";
 let reminderTimers = [];
 
@@ -13,7 +13,11 @@ self.addEventListener("install", function (event) {
 });
 
 self.addEventListener("activate", function (event) {
-  event.waitUntil(self.clients.claim().then(runDueReminders));
+  event.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    }).then(function () { return self.clients.claim(); }).then(runDueReminders)
+  );
 });
 
 self.addEventListener("message", function (event) {
@@ -31,10 +35,15 @@ self.addEventListener("message", function (event) {
 
 self.addEventListener("notificationclick", function (event) {
   event.notification.close();
+  const action = (event.notification.data && event.notification.data.action) || "dashboard";
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(function (list) {
-      if (list.length) return list[0].focus();
-      return self.clients.openWindow("./");
+      const client = list.length ? list[0] : null;
+      if (client) {
+        client.postMessage({ type: "NOTIFICATION_CLICKED", action: action });
+        return client.focus();
+      }
+      return self.clients.openWindow("./?action=" + action);
     })
   );
 });
@@ -94,10 +103,16 @@ async function runDueReminders() {
 
 async function showReminderNotification(r) {
   if (!r || !r.title) return;
+  // vibrate: always send pattern; Android honours it fully,
+  // iOS 16.4+ installed PWA honours it via system setting.
+  // silent=true suppresses sound when user toggled sound off.
+  const vibratePattern = (r.vibrate && r.vibrate.length) ? r.vibrate : [200, 100, 200];
   await self.registration.showNotification(r.title, {
     body: r.body || "",
     tag: r.tag || "75hard-reminder",
-    data: { tag: r.tag, id: r.id },
+    silent: r.silent === true,
+    vibrate: vibratePattern,
+    data: { tag: r.tag, id: r.id, action: r.action || "dashboard" },
     requireInteraction: false
   });
 }
