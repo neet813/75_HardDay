@@ -1,0 +1,38 @@
+{
+  "name": "75 Hard",
+  "short_name": "75 Hard",
+  "description": "75-day mental toughness challenge tracker",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#2d6a2d",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='100' fill='%232d6a2d'/%3E%3Ctext x='256' y='340' font-family='system-ui%2C-apple-system%2Csans-serif' font-size='260' font-weight='700' fill='white' text-anchor='middle'%3E75%3C/text%3E%3C/svg%3E",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Today",
+      "short_name": "Today",
+      "description": "Open today's day log",
+      "url": "./index.html?action=dashboard"
+    }
+  ]
+}

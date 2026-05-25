@@ -1,0 +1,2670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2d6a2d">
+  <link rel="manifest" href="manifest.json">
+  <title>75 Hard</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #000;
+      --text: #fff;
+      --muted: rgba(255, 255, 255, 0.5);
+      --border: rgba(255, 255, 255, 0.12);
+      --border-focus: rgba(255, 255, 255, 0.35);
+      --green: #2d6a2d;
+      --green-hover: #358535;
+      --green-soft: rgba(45, 106, 45, 0.28);
+      --green-text: #9fd49f;
+      --error: #e85d5d;
+      --radius: 0.75rem;
+      --radius-sm: 0.5rem;
+    }
+
+    html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5;
+      min-height: 100dvh; overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .app {
+      max-width: 480px; margin: 0 auto;
+      min-height: 100dvh; position: relative;
+    }
+
+    .screen {
+      display: none; flex-direction: column;
+      min-height: 100dvh;
+      padding: 1.25rem 1.125rem;
+      padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    }
+    #s-reminders, #s-history, #s-archive-detail, #s-profile, #s-photos, #s-data, #s-rules, #s-onboarding {
+      max-height: 100dvh; overflow-y: auto;
+    }
+    .screen.active { display: flex; }
+
+    /* ─── Shared ─── */
+    .top-bar {
+      display: flex; align-items: center; gap: 0.75rem;
+      margin-bottom: 1rem; min-height: 2.5rem;
+    }
+    .top-bar.dash-top { justify-content: space-between; }
+
+    .btn-back {
+      font-family: inherit; font-size: 0.9375rem; font-weight: 500;
+      color: var(--green-text); background: none; border: none;
+      padding: 0.5rem 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    .page-title {
+      font-size: 1.375rem; font-weight: 600; letter-spacing: -0.02em;
+    }
+    .page-title span {
+      color: var(--muted); font-weight: 400; font-size: 0.875rem;
+      display: block; margin-top: 0.125rem;
+    }
+
+    .section-title {
+      font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.12em; color: var(--muted);
+      margin: 1.25rem 0 0.75rem; padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    .btn-primary {
+      width: 100%; font-family: inherit; font-size: 1.0625rem; font-weight: 600;
+      color: var(--text); background: var(--green); border: none;
+      border-radius: 2rem; padding: 1rem 1.5rem; min-height: 3.5rem;
+      cursor: pointer; transition: background 0.2s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-primary:hover { background: var(--green-hover); }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+    .btn-secondary {
+      font-family: inherit; font-size: 0.9375rem; font-weight: 500;
+      color: var(--text); background: transparent;
+      border: 1px solid var(--border); border-radius: 2rem;
+      padding: 0.75rem 1.25rem; min-height: 2.75rem;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+
+    .form-error {
+      font-size: 0.875rem; color: var(--error); text-align: center;
+      margin: 0.75rem 0; display: none;
+    }
+    .form-error.visible { display: block; }
+
+    .field { margin-bottom: 1rem; }
+    .field label {
+      display: block; font-size: 0.9375rem; font-weight: 500; margin-bottom: 0.5rem;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%; background: transparent; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: inherit; font-size: 1.0625rem;
+      padding: 0.875rem 1rem; min-height: 3.25rem;
+      appearance: none; -webkit-appearance: none;
+      transition: border-color 0.2s;
+    }
+    .field textarea { min-height: 5rem; resize: vertical; }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none; border-color: var(--border-focus);
+    }
+    .field input.invalid, .field select.invalid { border-color: var(--error); }
+
+    .field input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+    .field input[type="number"]::-webkit-outer-spin-button,
+    .field input[type="number"]::-webkit-inner-spin-button {
+      appearance: none; -webkit-appearance: none; margin: 0;
+    }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    .select-wrap { position: relative; }
+    .select-wrap::after {
+      content: ""; position: absolute; right: 1rem; top: 50%;
+      transform: translateY(-50%);
+      border-left: 0.3rem solid transparent; border-right: 0.3rem solid transparent;
+      border-top: 0.35rem solid var(--muted); pointer-events: none;
+    }
+    .select-wrap select { padding-right: 2.5rem; cursor: pointer; }
+    .select-wrap select option { background: #111; }
+
+    .hidden-input { display: none; }
+
+    /* ─── Rules screen ─── */
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 1.75rem; font-weight: 700; letter-spacing: -0.02em; }
+    .header .subtitle { font-size: 0.875rem; color: var(--muted); margin-top: 0.375rem; }
+
+    .rules-intro {
+      font-size: 0.9375rem; line-height: 1.55;
+      margin-bottom: 1.25rem; color: var(--text);
+    }
+    .rules-intro strong { color: var(--green-text); }
+    .rules-list {
+      list-style: none; padding: 0;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      margin-bottom: 1.25rem;
+    }
+    .rules-list li {
+      padding: 0.875rem 1rem; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 0.9375rem;
+      display: flex; align-items: flex-start; gap: 0.5rem;
+    }
+    .rules-list li::before {
+      content: "✓"; color: var(--green-text); font-weight: 700; flex-shrink: 0;
+    }
+    .rules-note {
+      font-size: 0.8125rem; color: var(--muted);
+      padding: 0.875rem 1rem;
+      border-left: 2px solid var(--green); margin-bottom: 1rem;
+      background: var(--green-soft);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .rules-note strong { color: var(--text); }
+
+    .onboard-footer { margin-top: auto; padding-top: 1.25rem; }
+
+    .bmi-card {
+      margin-top: 0.75rem; padding: 1rem 1.125rem;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      display: flex; justify-content: space-between; align-items: baseline;
+    }
+    .bmi-card.empty { opacity: 0.45; }
+    .bmi-label { font-size: 0.875rem; color: var(--muted); }
+    .bmi-value { text-align: right; font-weight: 500; }
+    .bmi-value .cat { display: block; font-size: 0.8125rem; font-weight: 400; color: var(--muted); }
+    .bmi-value .cat.on { color: var(--green-text); }
+
+    /* ─── Dashboard ─── */
+    .dash-title-block h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.01em; }
+    .dash-meta { font-size: 0.8125rem; color: var(--muted); margin-top: 0.25rem; }
+
+    .btn-more {
+      width: 2.5rem; height: 2.5rem; border-radius: 50%;
+      border: 1px solid var(--border); background: transparent; color: var(--text);
+      font-size: 1.25rem; cursor: pointer; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .btn-more:active { background: rgba(255,255,255,0.05); }
+
+    .today-card {
+      width: 100%; display: block; font-family: inherit; text-align: left;
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-hover) 100%);
+      border: none; border-radius: var(--radius);
+      padding: 1.25rem; color: #fff; margin-bottom: 1rem;
+      cursor: pointer; transition: transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 16px rgba(45,106,45,0.25);
+    }
+    .today-card:active { transform: scale(0.98); }
+    .today-card.complete {
+      background: linear-gradient(135deg, #1a4d1a 0%, #2d6a2d 100%);
+    }
+    .today-card.complete::after {
+      content: " · Complete ✓";
+    }
+    .today-card-head {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 0.875rem;
+    }
+    .today-label {
+      font-size: 0.6875rem; text-transform: uppercase;
+      letter-spacing: 0.12em; font-weight: 600; opacity: 0.9;
+    }
+    .today-cta { font-size: 0.875rem; font-weight: 600; }
+    .today-stats {
+      display: flex; justify-content: space-between; align-items: flex-end;
+      font-size: 0.75rem; opacity: 0.95;
+    }
+    .today-stats > div { flex: 1; }
+    .today-stats strong {
+      font-size: 1.125rem; display: block;
+      font-weight: 700; margin-bottom: 0.125rem;
+    }
+
+    .progress-bar-wrap { margin: 0.5rem 0 1.25rem; }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-size: 0.8125rem; color: var(--muted); margin-bottom: 0.5rem;
+    }
+    .progress-track {
+      height: 0.375rem; background: var(--border);
+      border-radius: 1rem; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; background: var(--green);
+      border-radius: 1rem; width: 0%; transition: width 0.35s ease;
+    }
+
+    .calendar-grid {
+      display: grid; grid-template-columns: repeat(5, 1fr);
+      gap: 0.5rem;
+    }
+    .day-btn {
+      font-family: inherit; font-size: 0.9375rem; font-weight: 600;
+      aspect-ratio: 1; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); background: transparent; color: var(--text);
+      cursor: pointer; position: relative;
+      transition: border-color 0.15s, background 0.15s;
+      -webkit-tap-highlight-color: transparent;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .day-btn:active { transform: scale(0.96); }
+    .day-btn.locked { opacity: 0.28; cursor: not-allowed; pointer-events: none; }
+    .day-btn.today { border-color: var(--green); box-shadow: 0 0 0 1px var(--green); }
+    .day-btn.done {
+      background: var(--green-soft); border-color: var(--green); color: var(--green-text);
+    }
+    .day-btn .sub {
+      display: block; font-size: 0.5625rem; font-weight: 400;
+      color: var(--muted); margin-top: 0.125rem; line-height: 1;
+    }
+    .day-btn.done .sub { color: var(--green-text); opacity: 0.75; }
+
+    /* ─── Day detail ─── */
+    .task-list { list-style: none; }
+    .task-item {
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      padding: 0.875rem 0; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .task-item:last-child { border-bottom: none; }
+    .task-item.auto { cursor: default; opacity: 0.85; }
+
+    .task-check {
+      width: 1.375rem; height: 1.375rem;
+      border: 1.5px solid var(--border); border-radius: 0.3rem;
+      flex-shrink: 0; margin-top: 0.125rem;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .task-item.done .task-check { background: var(--green); border-color: var(--green); }
+    .task-item.done .task-check::after {
+      content: ""; width: 0.35rem; height: 0.6rem;
+      border: solid #fff; border-width: 0 2px 2px 0;
+      transform: rotate(45deg) translateY(-1px);
+    }
+
+    .task-text { font-size: 0.9375rem; }
+    .task-text small {
+      display: block; color: var(--muted);
+      font-size: 0.75rem; margin-top: 0.2rem;
+    }
+
+    .water-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 1rem; padding: 1rem 0;
+    }
+    .water-controls {
+      display: flex; align-items: center; gap: 0.75rem;
+    }
+    .water-btn {
+      width: 3rem; height: 3rem; border-radius: 50%;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--text); font-size: 1.5rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .water-btn:active { background: rgba(255,255,255,0.05); }
+    .water-count {
+      font-size: 1.75rem; font-weight: 700;
+      min-width: 3rem; text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+    .water-label { font-size: 0.875rem; color: var(--muted); }
+
+    .photo-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem; margin-top: 0.5rem;
+    }
+    .photo-thumb {
+      aspect-ratio: 1; border-radius: var(--radius-sm);
+      overflow: hidden; position: relative; border: 1px solid var(--border);
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .photo-thumb button.remove {
+      position: absolute; top: 0.375rem; right: 0.375rem;
+      width: 1.75rem; height: 1.75rem; border: none; border-radius: 50%;
+      background: rgba(0,0,0,0.75); color: #fff;
+      font-size: 0.875rem; cursor: pointer; line-height: 1;
+    }
+    .photo-add {
+      aspect-ratio: 1; border: 1px dashed var(--border);
+      border-radius: var(--radius-sm);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 0.25rem; font-size: 0.8125rem; color: var(--muted);
+      cursor: pointer; background: transparent;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .photo-add span { font-size: 1.5rem; line-height: 1; }
+
+    .day-actions {
+      margin-top: auto; padding-top: 1.25rem;
+    }
+
+    /* ─── Modals ─── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.85);
+      align-items: center; justify-content: center;
+      padding: 1.25rem;
+    }
+    .modal-overlay.visible { display: flex; }
+    .modal-box {
+      width: 100%; max-width: 24rem;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1.5rem; background: #0a0a0a;
+    }
+    .modal-box h3 {
+      font-size: 1.125rem; font-weight: 600;
+      margin-bottom: 0.75rem; color: var(--error);
+    }
+    .modal-box p {
+      font-size: 0.9375rem; color: rgba(255,255,255,0.75);
+      margin-bottom: 1rem;
+    }
+    .modal-actions {
+      display: flex; flex-direction: column; gap: 0.625rem;
+    }
+    .btn-danger {
+      width: 100%; font-family: inherit; font-size: 1rem; font-weight: 600;
+      color: var(--text); background: var(--error); border: none;
+      border-radius: 2rem; padding: 0.875rem 1.25rem; min-height: 3rem;
+      cursor: pointer;
+    }
+    .btn-danger:disabled {
+      background: rgba(232,93,93,0.3); cursor: not-allowed;
+    }
+
+    #reset-modal .field { margin: 1rem 0; }
+    #reset-modal input {
+      text-transform: uppercase; letter-spacing: 0.2em;
+      font-weight: 700; text-align: center;
+    }
+
+    /* ─── More menu ─── */
+    .menu-list {
+      display: flex; flex-direction: column; gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .menu-item {
+      display: flex; align-items: center; gap: 1rem;
+      width: 100%; padding: 1.125rem 1.125rem;
+      background: transparent; color: var(--text);
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-family: inherit; font-size: 1rem; font-weight: 500;
+      cursor: pointer; text-align: left;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .menu-item:active { background: rgba(255,255,255,0.05); border-color: var(--border-focus); }
+    .menu-icon { font-size: 1.375rem; line-height: 1; }
+    .menu-arrow { margin-left: auto; color: var(--muted); }
+
+    /* ─── Reminder settings ─── */
+    .settings-note {
+      font-size: 0.8125rem; color: var(--muted);
+      margin-bottom: 1rem; line-height: 1.45;
+    }
+    .perm-status {
+      font-size: 0.875rem; padding: 0.75rem 1rem;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      margin-bottom: 0.75rem;
+    }
+    .perm-status.granted { border-color: var(--green); color: var(--green-text); }
+    .perm-status.denied  { border-color: var(--error); color: var(--error); }
+
+    .toggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; padding: 0.875rem 0; border-bottom: 1px solid var(--border);
+      cursor: pointer; font-size: 0.9375rem;
+    }
+    .toggle-row input { width: 1.25rem; height: 1.25rem; accent-color: var(--green); }
+
+    .settings-block { margin-bottom: 0.5rem; }
+    .settings-block .field { margin-top: 0.75rem; margin-bottom: 0; }
+    .time-slots {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.5rem; margin-top: 0.75rem;
+    }
+    .time-slots .field { margin: 0; }
+
+    .settings-footer {
+      margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.625rem;
+    }
+
+    .custom-rem-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .custom-rem-row {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+    }
+    .custom-rem-row .cr-name {
+      flex: 1; font-size: 0.875rem; font-weight: 500;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .custom-rem-row .cr-time { font-size: 0.8125rem; color: var(--muted); flex-shrink: 0; }
+    .custom-rem-row .cr-del {
+      font-family: inherit; font-size: 1.125rem; color: var(--error);
+      background: none; border: none; cursor: pointer;
+      padding: 0.125rem 0.25rem; line-height: 1; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-add-custom {
+      font-family: inherit; font-size: 0.875rem; font-weight: 500;
+      color: var(--green-text); background: var(--green-soft);
+      border: 1px dashed var(--green); border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem; width: 100%;
+      cursor: pointer; margin-top: 0.625rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cr-modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 300;
+      background: rgba(0,0,0,0.85);
+      align-items: flex-end; justify-content: center;
+      padding: 0 0 env(safe-area-inset-bottom);
+    }
+    .cr-modal-overlay.visible { display: flex; }
+    .cr-modal-box {
+      width: 100%; max-width: 480px;
+      background: #111; border: 1px solid var(--border-focus);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 1.5rem 1.25rem 2rem;
+    }
+    .cr-modal-box h3 { font-size: 1.0625rem; font-weight: 600; margin-bottom: 1.25rem; }
+    .cr-modal-actions {
+      display: flex; flex-direction: column; gap: 0.625rem; margin-top: 1.25rem;
+    }
+
+    /* ─── History ─── */
+    .history-summary {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.625rem; margin-bottom: 1.25rem;
+    }
+    .summary-card {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0.875rem 1rem;
+    }
+    .summary-card .s-val {
+      font-size: 1.5rem; font-weight: 600; line-height: 1.1; display: block;
+    }
+    .summary-card .s-label {
+      font-size: 0.75rem; color: var(--muted); margin-top: 0.25rem; display: block;
+    }
+    .summary-card.highlight { border-color: var(--green); }
+    .summary-card.highlight .s-val { color: var(--green-text); }
+
+    .archive-list { display: flex; flex-direction: column; gap: 0.625rem; }
+    .archive-entry {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 1rem 2.25rem 1rem 1rem; cursor: pointer;
+      background: transparent; width: 100%; text-align: left;
+      font-family: inherit; color: var(--text); position: relative;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .archive-entry:active { background: rgba(255,255,255,0.03); }
+    .archive-entry .ae-day { font-size: 1rem; font-weight: 600; margin-bottom: 0.25rem; }
+    .archive-entry .ae-meta { font-size: 0.8125rem; color: var(--muted); line-height: 1.45; }
+    .archive-entry .ae-chevron {
+      position: absolute; right: 1rem; top: 50%;
+      transform: translateY(-50%); font-size: 1.125rem; color: var(--muted);
+    }
+    .history-empty {
+      text-align: center; padding: 3rem 1rem;
+      color: var(--muted); font-size: 0.9375rem; line-height: 1.55;
+    }
+    .history-empty .he-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+
+    .detail-tasks { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 0.5rem; }
+    .detail-day-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.625rem 0.75rem;
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+    }
+    .detail-day-row.complete { border-color: var(--green); background: var(--green-soft); }
+    .detail-day-row.complete .dr-status { color: var(--green-text); }
+    .detail-day-row .dr-status { font-size: 0.8125rem; color: var(--muted); }
+
+    .detail-meta-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 0.625rem; margin-bottom: 0.75rem;
+    }
+    .detail-meta-item {
+      border: 1px solid var(--border); border-radius: var(--radius-sm);
+      padding: 0.75rem 0.875rem;
+    }
+    .detail-meta-item .dm-val { font-weight: 600; font-size: 1.0625rem; display: block; }
+    .detail-meta-item .dm-label { font-size: 0.75rem; color: var(--muted); margin-top: 0.125rem; display: block; }
+
+    .btn-delete-entry {
+      font-family: inherit; font-size: 0.875rem; font-weight: 500;
+      color: var(--error); background: transparent;
+      border: 1px solid rgba(232,93,93,0.35); border-radius: 2rem;
+      padding: 0.75rem 1.25rem; min-height: 2.75rem; cursor: pointer;
+      width: 100%; -webkit-tap-highlight-color: transparent;
+    }
+    .detail-scroll { flex: 1; }
+
+    /* ─── Photo gallery ─── */
+    .gallery-filter-row {
+      display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap;
+    }
+    .gallery-filter-btn {
+      font-family: inherit; font-size: 0.8125rem; font-weight: 500;
+      padding: 0.375rem 0.875rem; border-radius: 2rem;
+      border: 1px solid var(--border); background: transparent;
+      color: var(--muted); cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .gallery-filter-btn.active {
+      border-color: var(--green); color: var(--green-text); background: var(--green-soft);
+    }
+    .gallery-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem;
+    }
+    .gallery-thumb-wrap { position: relative; }
+    .gallery-thumb {
+      aspect-ratio: 1; object-fit: cover; border-radius: 6px;
+      cursor: pointer; width: 100%; display: block;
+      background: #1a1a1a; border: 1px solid var(--border);
+    }
+    .gallery-thumb-label {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.75));
+      color: #fff; font-size: 0.6875rem; font-weight: 600;
+      padding: 0.75rem 0.375rem 0.25rem;
+      border-radius: 0 0 6px 6px; pointer-events: none;
+    }
+    .gallery-empty {
+      text-align: center; padding: 3rem 1rem; color: var(--muted);
+      font-size: 0.9375rem; line-height: 1.55; grid-column: 1 / -1;
+    }
+    .gallery-empty .ge-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+
+    .lightbox {
+      display: none; position: fixed; inset: 0; z-index: 400;
+      background: rgba(0,0,0,0.96);
+      flex-direction: column; align-items: center; justify-content: center;
+    }
+    .lightbox.visible { display: flex; }
+    .lightbox-img {
+      max-width: 100%; max-height: 75dvh; object-fit: contain; border-radius: 6px;
+    }
+    .lightbox-meta {
+      margin-top: 1rem; text-align: center;
+      color: rgba(255,255,255,0.7); font-size: 0.875rem; line-height: 1.5;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .lightbox-meta strong { color: #fff; font-size: 1rem; display: block; margin-bottom: 0.25rem; }
+    .lightbox-close {
+      position: absolute; top: calc(0.75rem + env(safe-area-inset-top));
+      right: 0.75rem; font-family: inherit;
+      font-size: 1.75rem; line-height: 1;
+      color: rgba(255,255,255,0.7); background: none; border: none;
+      cursor: pointer; padding: 0.5rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      font-family: inherit; font-size: 2rem;
+      color: rgba(255,255,255,0.5); background: none; border: none;
+      cursor: pointer; padding: 0.5rem 0.75rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .lightbox-nav.prev { left: 0; }
+    .lightbox-nav.next { right: 0; }
+
+    /* ─── iOS install prompt ─── */
+    .ios-prompt {
+      display: none; position: fixed;
+      bottom: 0; left: 0; right: 0; z-index: 200;
+      padding: 0 1rem calc(1.25rem + env(safe-area-inset-bottom));
+      animation: slideUp 0.35s ease;
+    }
+    .ios-prompt.visible { display: block; }
+    @keyframes slideUp {
+      from { transform: translateY(100%); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .ios-prompt-box {
+      background: #111; border: 1px solid var(--border-focus);
+      border-radius: var(--radius); padding: 1.25rem 1.125rem 1rem;
+      position: relative; box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
+    }
+    .ios-prompt-close {
+      position: absolute; top: 0.75rem; right: 0.875rem;
+      background: none; border: none; color: var(--muted);
+      font-size: 1.25rem; cursor: pointer; line-height: 1;
+      padding: 0.25rem; font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ios-prompt-title {
+      font-size: 1rem; font-weight: 600;
+      margin-bottom: 0.375rem; padding-right: 2rem;
+    }
+    .ios-prompt-sub {
+      font-size: 0.8125rem; color: var(--muted);
+      margin-bottom: 1rem; line-height: 1.45;
+    }
+    .ios-prompt-steps {
+      display: flex; flex-direction: column;
+      gap: 0.625rem; margin-bottom: 1rem;
+    }
+    .ios-step {
+      display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem;
+    }
+    .ios-step-icon {
+      font-size: 1.125rem; flex-shrink: 0; width: 1.625rem; text-align: center;
+    }
+    .ios-prompt-remind {
+      font-family: inherit; font-size: 0.8125rem; color: var(--muted);
+      background: none; border: none; cursor: pointer;
+      width: 100%; text-align: center; padding: 0.5rem;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ─── Data screen ─── */
+    .data-note {
+      padding: 0.875rem 1rem; border: 1px solid var(--border);
+      border-radius: var(--radius-sm); font-size: 0.875rem;
+      color: var(--muted); line-height: 1.5; margin-bottom: 1rem;
+    }
+    .data-note strong { color: var(--text); }
+    .data-warn {
+      padding: 0.875rem 1rem; border: 1px solid rgba(232,93,93,0.3);
+      border-radius: var(--radius-sm);
+      background: rgba(232,93,93,0.08);
+      font-size: 0.8125rem; color: var(--error);
+      line-height: 1.5; margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- ─── RULES (first run) ─── -->
+    <section id="s-rules" class="screen">
+      <header class="header">
+        <h1>75 Hard</h1>
+        <p class="subtitle">Mental toughness · 75 days</p>
+      </header>
+      <p class="rules-intro">Complete <strong>every rule, every day</strong> for 75 days straight. Miss one — even by a minute — and you restart at Day&nbsp;1.</p>
+      <ul class="rules-list">
+        <li>Two 45-min workouts (one must be outdoors)</li>
+        <li>Follow a diet — no cheat meals, no alcohol</li>
+        <li>Drink 1&nbsp;gallon (16 glasses) of water</li>
+        <li>Read 10 pages of non-fiction</li>
+        <li>Take a daily progress photo</li>
+      </ul>
+      <p class="rules-note"><strong>Note:</strong> a "day" here is exactly 24 hours from when you start — not calendar midnight.</p>
+      <footer class="onboard-footer">
+        <button type="button" class="btn-primary" id="btn-begin">I'm ready — set up profile</button>
+      </footer>
+    </section>
+
+    <!-- ─── ONBOARDING ─── -->
+    <section id="s-onboarding" class="screen">
+      <header class="header">
+        <h1>Your profile</h1>
+        <p class="subtitle">Day 0 setup</p>
+      </header>
+      <form id="setup-form" novalidate>
+        <h2 class="section-title">Basic</h2>
+        <div class="field">
+          <label for="name">Name</label>
+          <input type="text" id="name" autocomplete="name" required>
+        </div>
+        <div class="row-2">
+          <div class="field">
+            <label for="age">Age</label>
+            <input type="number" id="age" inputmode="numeric" min="13" max="120" required>
+          </div>
+          <div class="field">
+            <label for="gender">Gender</label>
+            <div class="select-wrap">
+              <select id="gender" required>
+                <option value="" disabled selected hidden></option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Non-binary">Non-binary</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h2 class="section-title">Body</h2>
+        <div class="field">
+          <label for="units">Units</label>
+          <div class="select-wrap">
+            <select id="units">
+              <option value="metric">Metric (cm · kg)</option>
+              <option value="imperial">Imperial (ft+in · lb)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="metric-fields">
+          <div class="row-2">
+            <div class="field">
+              <label for="height-cm">Height (cm)</label>
+              <input type="number" id="height-cm" inputmode="decimal" min="50" max="300" step="0.1">
+            </div>
+            <div class="field">
+              <label for="weight-kg">Weight (kg)</label>
+              <input type="number" id="weight-kg" inputmode="decimal" min="20" max="500" step="0.1">
+            </div>
+          </div>
+        </div>
+
+        <div id="imperial-fields" style="display:none">
+          <label style="display:block;font-size:0.9375rem;font-weight:500;margin-bottom:0.5rem;">Height</label>
+          <div class="row-2">
+            <div class="field" style="margin-bottom:1rem;">
+              <input type="number" id="height-ft" inputmode="numeric" placeholder="ft" min="2" max="9">
+            </div>
+            <div class="field" style="margin-bottom:1rem;">
+              <input type="number" id="height-in" inputmode="numeric" placeholder="in" min="0" max="11">
+            </div>
+          </div>
+          <div class="field">
+            <label for="weight-lb">Weight (lb)</label>
+            <input type="number" id="weight-lb" inputmode="decimal" min="40" max="1000" step="0.1">
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="activity">How active are you?</label>
+          <div class="select-wrap">
+            <select id="activity" required>
+              <option value="" disabled selected hidden></option>
+              <option value="Sedentary">Sedentary — little or no exercise</option>
+              <option value="Lightly Active">Lightly active — 1–3 days/week</option>
+              <option value="Moderately Active">Moderately active — 3–5 days/week</option>
+              <option value="Very Active">Very active — 6–7 days/week</option>
+              <option value="Extremely Active">Extremely active — intense daily</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bmi-card empty" id="bmi-card">
+          <span class="bmi-label">BMI</span>
+          <div class="bmi-value" id="bmi-display">
+            <span>—</span><span class="cat">Enter height &amp; weight</span>
+          </div>
+        </div>
+
+        <p class="form-error" id="form-error">Please complete all fields correctly.</p>
+
+        <footer class="onboard-footer">
+          <button type="submit" class="btn-primary">Start the challenge</button>
+        </footer>
+      </form>
+    </section>
+
+    <!-- ─── DASHBOARD ─── -->
+    <section id="s-dashboard" class="screen">
+      <div class="top-bar dash-top">
+        <div class="dash-title-block">
+          <h1 id="dash-greeting">Day 1 of 75</h1>
+          <p class="dash-meta" id="dash-meta"></p>
+        </div>
+        <button type="button" class="btn-more" id="btn-open-more" aria-label="More">⋯</button>
+      </div>
+
+      <button type="button" class="today-card" id="btn-open-today">
+        <div class="today-card-head">
+          <span class="today-label">Today</span>
+          <span class="today-cta">Open day →</span>
+        </div>
+        <div class="today-stats">
+          <div><strong id="today-tasks">0/5</strong>tasks</div>
+          <div><strong id="today-water">0/16</strong>water</div>
+          <div><strong id="today-photo">0/1</strong>photo</div>
+        </div>
+      </button>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-label">
+          <span>Overall progress</span>
+          <span id="progress-text">0 / 75</span>
+        </div>
+        <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+      </div>
+
+      <h2 class="section-title">All days</h2>
+      <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="75 day calendar"></div>
+    </section>
+
+    <!-- ─── DAY DETAIL ─── -->
+    <section id="s-day" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-calendar">← Calendar</button>
+      </div>
+      <h2 class="page-title" id="day-title">Day 1</h2>
+
+      <h3 class="section-title">Daily tasks</h3>
+      <ul class="task-list" id="task-list"></ul>
+
+      <h3 class="section-title">Water (goal: 16 glasses)</h3>
+      <div class="water-row">
+        <div class="water-controls">
+          <button type="button" class="water-btn" id="water-minus" aria-label="Less">−</button>
+          <span class="water-count" id="water-count">0</span>
+          <button type="button" class="water-btn" id="water-plus" aria-label="More">+</button>
+        </div>
+        <span class="water-label">/ 16</span>
+      </div>
+
+      <h3 class="section-title">Progress photo</h3>
+      <div class="photo-grid" id="photo-grid"></div>
+      <input type="file" id="photo-input" class="hidden-input" accept="image/*" capture="environment">
+
+      <h3 class="section-title">Notes (optional)</h3>
+      <div class="field" style="margin-bottom:0;">
+        <textarea id="day-notes" rows="3" placeholder="How did it go?"></textarea>
+      </div>
+
+      <div class="day-actions">
+        <button type="button" class="btn-primary" id="btn-save-day">Save &amp; back</button>
+      </div>
+    </section>
+
+    <!-- ─── MORE MENU ─── -->
+    <section id="s-more" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-more-back">← Back</button>
+      </div>
+      <h2 class="page-title">More</h2>
+      <div class="menu-list">
+        <button type="button" class="menu-item" id="btn-more-photos">
+          <span class="menu-icon">📷</span><span>Photo gallery</span><span class="menu-arrow">›</span>
+        </button>
+        <button type="button" class="menu-item" id="btn-more-profile">
+          <span class="menu-icon">👤</span><span>Edit profile</span><span class="menu-arrow">›</span>
+        </button>
+        <button type="button" class="menu-item" id="btn-more-reminders">
+          <span class="menu-icon">🔔</span><span>Reminders</span><span class="menu-arrow">›</span>
+        </button>
+        <button type="button" class="menu-item" id="btn-more-history">
+          <span class="menu-icon">📜</span><span>Reset history</span><span class="menu-arrow">›</span>
+        </button>
+        <button type="button" class="menu-item" id="btn-more-backup">
+          <span class="menu-icon">💾</span><span>Backup &amp; restore</span><span class="menu-arrow">›</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ─── PHOTOS ─── -->
+    <section id="s-photos" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-photos">← Back</button>
+      </div>
+      <h2 class="page-title">Photos<span id="gallery-subtitle">All progress photos</span></h2>
+      <div class="gallery-filter-row" id="gallery-filter-row"></div>
+      <div class="gallery-grid" id="gallery-grid"></div>
+    </section>
+
+    <!-- ─── EDIT PROFILE ─── -->
+    <section id="s-profile" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-profile">← Back</button>
+      </div>
+      <h2 class="page-title">Edit profile<span>Your progress stays the same</span></h2>
+      <div class="field">
+        <label for="ep-name">Name</label>
+        <input type="text" id="ep-name">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="ep-age">Age</label>
+          <input type="number" id="ep-age" inputmode="numeric">
+        </div>
+        <div class="field">
+          <label for="ep-gender">Gender</label>
+          <div class="select-wrap">
+            <select id="ep-gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Non-binary">Non-binary</option>
+              <option value="Prefer not to say">Prefer not to say</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label for="ep-height">Height (cm)</label>
+          <input type="number" id="ep-height" inputmode="decimal" step="0.1">
+        </div>
+        <div class="field">
+          <label for="ep-weight">Weight (kg)</label>
+          <input type="number" id="ep-weight" inputmode="decimal" step="0.1">
+        </div>
+      </div>
+      <div class="field">
+        <label for="ep-activity">Activity</label>
+        <div class="select-wrap">
+          <select id="ep-activity">
+            <option value="Sedentary">Sedentary</option>
+            <option value="Lightly Active">Lightly active</option>
+            <option value="Moderately Active">Moderately active</option>
+            <option value="Very Active">Very active</option>
+            <option value="Extremely Active">Extremely active</option>
+          </select>
+        </div>
+      </div>
+      <p class="form-error" id="ep-form-error">Please complete required fields.</p>
+      <footer class="settings-footer">
+        <button type="button" class="btn-primary" id="btn-save-profile">Save profile</button>
+      </footer>
+    </section>
+
+    <!-- ─── REMINDERS ─── -->
+    <section id="s-reminders" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-reminders">← Back</button>
+      </div>
+      <h2 class="page-title">Reminders<span>Water, tasks &amp; day window</span></h2>
+
+      <p class="settings-note">Install the app and allow notifications for reminders to fire when the tab is closed.</p>
+      <p class="settings-note" id="ios-install-note" style="display:none;border:1px solid var(--green);border-radius:var(--radius-sm);padding:0.75rem;color:var(--green-text);background:var(--green-soft);">
+        📱 <strong>iPhone/iPad:</strong> Add to Home Screen first.
+      </p>
+
+      <p class="perm-status" id="perm-status">Checking notification permission…</p>
+      <button type="button" class="btn-secondary" id="btn-request-permission" style="width:100%;margin-bottom:1rem;">Allow notifications</button>
+
+      <label class="toggle-row"><span>Enable all reminders</span><input type="checkbox" id="rem-master"></label>
+
+      <div class="settings-block">
+        <label class="toggle-row"><span>Water (5 nudges)</span><input type="checkbox" id="rem-water-enabled"></label>
+        <div class="time-slots">
+          <div class="field"><label for="rem-water-1">Water 1</label><input type="time" id="rem-water-1" value="09:00"></div>
+          <div class="field"><label for="rem-water-2">Water 2</label><input type="time" id="rem-water-2" value="12:00"></div>
+          <div class="field"><label for="rem-water-3">Water 3</label><input type="time" id="rem-water-3" value="15:00"></div>
+          <div class="field"><label for="rem-water-4">Water 4</label><input type="time" id="rem-water-4" value="18:00"></div>
+          <div class="field"><label for="rem-water-5">Water 5</label><input type="time" id="rem-water-5" value="21:00"></div>
+        </div>
+      </div>
+
+      <div class="settings-block">
+        <label class="toggle-row"><span>Morning task check-in</span><input type="checkbox" id="rem-tasks-enabled"></label>
+        <div class="field"><label for="rem-tasks-time">Time</label><input type="time" id="rem-tasks-time" value="08:00"></div>
+      </div>
+
+      <div class="settings-block">
+        <label class="toggle-row"><span>Day window ending soon</span><input type="checkbox" id="rem-window-enabled"></label>
+        <div class="field">
+          <label for="rem-window-before">Warn before window ends</label>
+          <div class="select-wrap">
+            <select id="rem-window-before">
+              <option value="30">30 minutes</option>
+              <option value="60" selected>1 hour</option>
+              <option value="120">2 hours</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-title">Sound &amp; vibration</h3>
+      <label class="toggle-row"><span>Sound</span><input type="checkbox" id="rem-sound" checked></label>
+      <label class="toggle-row"><span>Vibration</span><input type="checkbox" id="rem-vibrate" checked></label>
+
+      <h3 class="section-title">Custom reminders</h3>
+      <p class="settings-note" style="margin-bottom:0.5rem;">Add your own reminders. Tap a notification to open the right screen.</p>
+      <div class="custom-rem-list" id="custom-rem-list"></div>
+      <button type="button" class="btn-add-custom" id="btn-add-custom-rem">+ Add reminder</button>
+
+      <footer class="settings-footer">
+        <button type="button" class="btn-primary" id="btn-save-reminders">Save reminders</button>
+      </footer>
+    </section>
+
+    <!-- ─── HISTORY ─── -->
+    <section id="s-history" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-history">← Back</button>
+      </div>
+      <h2 class="page-title">Reset history<span id="history-subtitle"></span></h2>
+      <div id="history-summary" class="history-summary"></div>
+      <h3 class="section-title">Past runs</h3>
+      <div id="archive-list" class="archive-list"></div>
+    </section>
+
+    <!-- ─── ARCHIVE DETAIL ─── -->
+    <section id="s-archive-detail" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-detail">← History</button>
+      </div>
+      <h2 class="page-title" id="detail-title">Run detail</h2>
+      <div class="detail-scroll" id="detail-content"></div>
+      <div style="padding-top:1rem;">
+        <button type="button" class="btn-delete-entry" id="btn-delete-entry">Delete this record</button>
+      </div>
+    </section>
+
+    <!-- ─── DATA / BACKUP ─── -->
+    <section id="s-data" class="screen">
+      <div class="top-bar">
+        <button type="button" class="btn-back" id="btn-back-data">← Back</button>
+      </div>
+      <h2 class="page-title">Backup &amp; restore<span>Save your streak &amp; photos</span></h2>
+      <p class="data-note">All your data lives <strong>on this device only</strong>. Export regularly — clearing your browser cache will wipe everything.</p>
+      <button type="button" class="btn-primary" id="btn-export" style="margin-bottom:0.75rem;">Export backup (.json)</button>
+      <button type="button" class="btn-secondary" id="btn-import" style="width:100%;">Import backup…</button>
+      <input type="file" id="import-input" accept="application/json,.json" class="hidden-input">
+      <p class="data-warn"><strong>Heads up:</strong> importing replaces everything currently on this device.</p>
+      <p class="data-note" id="storage-info" style="margin-top:1rem;font-size:0.75rem;"></p>
+    </section>
+
+  </div>
+
+  <!-- ─── LIGHTBOX ─── -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Photo viewer">
+    <button type="button" class="lightbox-close" id="lightbox-close" aria-label="Close">×</button>
+    <button type="button" class="lightbox-nav prev" id="lightbox-prev" aria-label="Previous">‹</button>
+    <img class="lightbox-img" id="lightbox-img" src="" alt="Progress photo">
+    <div class="lightbox-meta" id="lightbox-meta"></div>
+    <button type="button" class="lightbox-nav next" id="lightbox-next" aria-label="Next">›</button>
+  </div>
+
+  <!-- ─── RESET MODAL ─── -->
+  <div class="modal-overlay" id="reset-modal" role="alertdialog" aria-modal="true">
+    <div class="modal-box">
+      <h3>You broke your cycle</h3>
+      <p id="reset-modal-msg"></p>
+      <div class="field">
+        <label for="reset-confirm-input">Type <strong style="color:var(--text);">RESET</strong> to confirm</label>
+        <input type="text" id="reset-confirm-input" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btn-confirm-reset" disabled>Reset to Day 1</button>
+        <button type="button" class="btn-secondary" id="btn-dismiss-reset">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── DELETE ARCHIVE MODAL ─── -->
+  <div class="modal-overlay" id="delete-modal" role="alertdialog" aria-modal="true">
+    <div class="modal-box">
+      <h3>Delete record?</h3>
+      <p id="delete-modal-msg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btn-confirm-delete">Delete</button>
+        <button type="button" class="btn-secondary" id="btn-dismiss-delete">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── CUSTOM REMINDER MODAL ─── -->
+  <div class="cr-modal-overlay" id="cr-modal" role="dialog" aria-modal="true">
+    <div class="cr-modal-box">
+      <h3>Add reminder</h3>
+      <div class="field">
+        <label for="cr-name">Name</label>
+        <input type="text" id="cr-name" placeholder="e.g. Evening walk" maxlength="40">
+      </div>
+      <div class="field">
+        <label for="cr-time">Time</label>
+        <input type="time" id="cr-time" value="07:00">
+      </div>
+      <div class="field">
+        <label for="cr-action">Opens</label>
+        <div class="select-wrap">
+          <select id="cr-action">
+            <option value="dashboard">Calendar</option>
+            <option value="water">Water log (adds 1 glass)</option>
+            <option value="tasks">Daily tasks</option>
+          </select>
+        </div>
+      </div>
+      <div class="cr-modal-actions">
+        <button type="button" class="btn-primary" id="btn-cr-save">Add reminder</button>
+        <button type="button" class="btn-secondary" id="btn-cr-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── iOS INSTALL PROMPT ─── -->
+  <div class="ios-prompt" id="ios-prompt" role="dialog" aria-modal="true">
+    <div class="ios-prompt-box">
+      <button type="button" class="ios-prompt-close" id="ios-prompt-close" aria-label="Dismiss">×</button>
+      <p class="ios-prompt-title">Enable reminders 🔔</p>
+      <p class="ios-prompt-sub">On iPhone/iPad, notifications only work when the app is installed to your home screen.</p>
+      <div class="ios-prompt-steps">
+        <div class="ios-step"><span class="ios-step-icon">⬆️</span><span>Tap <strong>Share</strong> in Safari</span></div>
+        <div class="ios-step"><span class="ios-step-icon">➕</span><span>Tap <strong>Add to Home Screen</strong></span></div>
+        <div class="ios-step"><span class="ios-step-icon">📱</span><span>Open from your home screen</span></div>
+      </div>
+      <button type="button" class="ios-prompt-remind" id="ios-prompt-remind">Remind me later</button>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ═══════════ Constants ═══════════ */
+    const STORAGE_KEY = "75hard_profile";
+    const IOS_PROMPT_KEY = "75hard_ios_prompt";
+    const TOTAL_DAYS = 75;
+    const MAX_PHOTOS = 4;
+    const WATER_GOAL = 16;
+    const MS_PER_DAY = 86400000;
+    const TICK_MS = 30000;          // 30s — gentle on battery
+    const LOG = "[75Hard]";
+
+    const TASKS = [
+      { id: "workout1", label: "Workout 1 (45 min)", hint: "Any type" },
+      { id: "workout2", label: "Workout 2 (45 min)", hint: "Must be outdoors" },
+      { id: "diet",     label: "Follow your diet",   hint: "No cheat meals, no alcohol" },
+      { id: "read",     label: "Read 10 pages",      hint: "Non-fiction" },
+      { id: "photo",    label: "Progress photo",     hint: "Add it below — auto-checks" }
+    ];
+
+    function log() { try { console.log.apply(console, [LOG].concat([].slice.call(arguments))); } catch(e){} }
+
+    /* ═══════════ State ═══════════ */
+    let profile = null;
+    let currentDay = 1;
+    let lastUnlocked = 0;
+    let realtimeTimer = null;
+    let lastRemCheckMs = 0;
+    let pendingFailure = null;
+    let resetSnoozedThisSession = false;
+    let swReg = null;
+    let mainTimers = [];
+    const blobUrlCache = new Map();   // photoId -> object URL
+    let units = "metric";
+
+    /* ═══════════ IndexedDB photo store ═══════════ */
+    const DB_NAME = "75hard-photos";
+    const STORE = "photos";
+    let dbPromise = null;
+
+    function openDb() {
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise(function (res, rej) {
+        if (!("indexedDB" in window)) { rej(new Error("IndexedDB not supported")); return; }
+        const req = indexedDB.open(DB_NAME, 1);
+        req.onupgradeneeded = function () {
+          if (!req.result.objectStoreNames.contains(STORE)) {
+            req.result.createObjectStore(STORE);
+          }
+        };
+        req.onsuccess = function () { res(req.result); };
+        req.onerror   = function () { rej(req.error); };
+      });
+      return dbPromise;
+    }
+
+    function idbPut(id, blob) {
+      return openDb().then(function (db) {
+        return new Promise(function (res, rej) {
+          const tx = db.transaction(STORE, "readwrite");
+          tx.objectStore(STORE).put(blob, id);
+          tx.oncomplete = function () { res(); };
+          tx.onerror    = function () { rej(tx.error); };
+        });
+      });
+    }
+
+    function idbGet(id) {
+      return openDb().then(function (db) {
+        return new Promise(function (res, rej) {
+          const tx = db.transaction(STORE, "readonly");
+          const r = tx.objectStore(STORE).get(id);
+          r.onsuccess = function () { res(r.result || null); };
+          r.onerror   = function () { rej(r.error); };
+        });
+      });
+    }
+
+    function idbDel(id) {
+      return openDb().then(function (db) {
+        return new Promise(function (res, rej) {
+          const tx = db.transaction(STORE, "readwrite");
+          tx.objectStore(STORE).delete(id);
+          tx.oncomplete = function () { res(); };
+          tx.onerror    = function () { rej(tx.error); };
+        });
+      });
+    }
+
+    function idbListIds() {
+      return openDb().then(function (db) {
+        return new Promise(function (res, rej) {
+          const tx = db.transaction(STORE, "readonly");
+          const r = tx.objectStore(STORE).getAllKeys();
+          r.onsuccess = function () { res(r.result || []); };
+          r.onerror   = function () { rej(r.error); };
+        });
+      });
+    }
+
+    async function getPhotoUrl(id) {
+      if (blobUrlCache.has(id)) return blobUrlCache.get(id);
+      try {
+        const blob = await idbGet(id);
+        if (!blob) return null;
+        const url = URL.createObjectURL(blob);
+        blobUrlCache.set(id, url);
+        return url;
+      } catch (e) { log("PHOTO_LOAD_FAIL", id, e.message); return null; }
+    }
+
+    function releasePhotoUrl(id) {
+      if (blobUrlCache.has(id)) {
+        URL.revokeObjectURL(blobUrlCache.get(id));
+        blobUrlCache.delete(id);
+      }
+    }
+
+    function newId() {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return "p_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+    }
+
+    function dataUrlToBlob(dataUrl) {
+      const parts = dataUrl.split(",");
+      const meta = parts[0]; const b64 = parts[1];
+      const mime = (meta.match(/:(.*?);/) || [, "image/jpeg"])[1];
+      const bin = atob(b64);
+      const arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      return new Blob([arr], { type: mime });
+    }
+
+    function blobToDataUrl(blob) {
+      return new Promise(function (res, rej) {
+        const fr = new FileReader();
+        fr.onload  = function () { res(fr.result); };
+        fr.onerror = function () { rej(fr.error); };
+        fr.readAsDataURL(blob);
+      });
+    }
+
+    /* ═══════════ Profile ═══════════ */
+    function defaultReminders() {
+      return {
+        enabled: true, sound: true, vibrate: true,
+        water:     { enabled: true, times: ["09:00","12:00","15:00","18:00","21:00"] },
+        tasks:     { enabled: true, time: "08:00" },
+        windowEnd: { enabled: true, minutesBefore: 60 },
+        custom: [],
+        fired: {}
+      };
+    }
+
+    function migrateProfile(p) {
+      if (!p.days) p.days = {};
+      if (!p.archive) p.archive = [];
+      if (!p.units) p.units = "metric";
+      if (!p.reminders) p.reminders = defaultReminders();
+      else {
+        const def = defaultReminders();
+        if (p.reminders.sound === undefined) p.reminders.sound = true;
+        if (p.reminders.vibrate === undefined) p.reminders.vibrate = true;
+        if (!p.reminders.water)     p.reminders.water = def.water;
+        if (!p.reminders.tasks)     p.reminders.tasks = def.tasks;
+        if (!p.reminders.windowEnd) p.reminders.windowEnd = def.windowEnd;
+        if (!p.reminders.custom)    p.reminders.custom = [];
+        if (!p.reminders.fired)     p.reminders.fired = {};
+        if (!p.reminders.water.times || p.reminders.water.times.length < 5)
+          p.reminders.water.times = def.water.times;
+      }
+      if (!p.startTimestamp && p.startDate) p.startTimestamp = p.startDate + "T00:00:00.000";
+
+      // Per-day shape
+      Object.keys(p.days).forEach(function (k) {
+        const d = p.days[k];
+        if (!d.tasks) d.tasks = {};
+        if (d.water === undefined) d.water = 0;
+        if (!d.notes) d.notes = "";
+        if (!d.photos) d.photos = [];
+        if (!d.photoIds) d.photoIds = [];
+      });
+      // Archive per-day shape
+      p.archive.forEach(function (a) {
+        if (!a.days) return;
+        Object.keys(a.days).forEach(function (k) {
+          const d = a.days[k];
+          if (!d.photos) d.photos = [];
+          if (!d.photoIds) d.photoIds = [];
+        });
+      });
+
+      if (p.pendingFailure) pendingFailure = p.pendingFailure;
+    }
+
+    function loadProfile() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const p = JSON.parse(raw);
+        migrateProfile(p);
+        return p;
+      } catch (e) { log("LOAD_FAIL", e.message); return null; }
+    }
+
+    function saveProfile() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      } catch (e) {
+        log("SAVE_FAIL", e.message);
+        alert("Storage is full. Open More → Backup & restore and export your data, then clear browser site data.");
+      }
+    }
+
+    // One-shot: move any base64 photos into IndexedDB, replacing with photoIds.
+    async function migratePhotosToIdb() {
+      if (!profile) return;
+      let migrated = 0;
+      async function migrateDays(daysObj) {
+        for (const k of Object.keys(daysObj)) {
+          const d = daysObj[k];
+          if (!d.photos || !d.photos.length) continue;
+          const keep = [];
+          for (const src of d.photos) {
+            if (typeof src === "string" && src.indexOf("data:") === 0) {
+              try {
+                const id = newId();
+                await idbPut(id, dataUrlToBlob(src));
+                if (!d.photoIds) d.photoIds = [];
+                d.photoIds.push(id);
+                migrated++;
+              } catch (e) { keep.push(src); }
+            } else if (src && src !== "test") {
+              keep.push(src);
+            }
+          }
+          d.photos = keep;
+        }
+      }
+      await migrateDays(profile.days);
+      for (const a of profile.archive) {
+        if (a.days) await migrateDays(a.days);
+      }
+      if (migrated > 0) { log("PHOTOS_MIGRATED", migrated); saveProfile(); }
+    }
+
+    /* ═══════════ Day logic ═══════════ */
+    function todayISO() {
+      const d = new Date();
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+
+    function startMs() {
+      if (!profile || !profile.startTimestamp) return Date.now();
+      return new Date(profile.startTimestamp).getTime();
+    }
+    function dayStartMs(n) { return startMs() + (n - 1) * MS_PER_DAY; }
+    function dayEndMs(n)   { return startMs() + n * MS_PER_DAY; }
+
+    function unlockedDay() {
+      if (!profile || !profile.setup) return 1;
+      const elapsed = Date.now() - startMs();
+      if (elapsed < 0) return 1;
+      return Math.min(Math.max(Math.floor(elapsed / MS_PER_DAY) + 1, 1), TOTAL_DAYS);
+    }
+    function dayUnlocked(n) { return n <= unlockedDay(); }
+
+    function getDayData(n) {
+      const k = String(n);
+      if (!profile.days[k]) {
+        profile.days[k] = { tasks: {}, water: 0, notes: "", photos: [], photoIds: [], completed: false };
+      }
+      return profile.days[k];
+    }
+
+    function dayPhotoCount(d) {
+      return ((d.photoIds && d.photoIds.length) || 0) + ((d.photos && d.photos.length) || 0);
+    }
+
+    function isDayComplete(d) {
+      if (!d) return false;
+      const tasksOk = TASKS.every(function (t) {
+        if (t.id === "photo") return dayPhotoCount(d) > 0;
+        return !!d.tasks[t.id];
+      });
+      return tasksOk && d.water >= WATER_GOAL;
+    }
+
+    function countDone() {
+      let n = 0;
+      for (let i = 1; i <= TOTAL_DAYS; i++) {
+        if (isDayComplete(getDayData(i))) n++;
+      }
+      return n;
+    }
+
+    function syncDayState(d) {
+      d.completed = isDayComplete(d);
+      saveProfile();
+    }
+
+    /* ═══════════ Failure / reset ═══════════ */
+    function auditPastDays() {
+      const u = unlockedDay();
+      for (let i = 1; i < u; i++) {
+        if (!isDayComplete(getDayData(i))) {
+          queueFailure(i, "window_expired");
+          return true;
+        }
+      }
+      return false;
+    }
+
+    function queueFailure(day, reason) {
+      if (!pendingFailure || pendingFailure.failedDay !== day) {
+        pendingFailure = { failedDay: day, reason: reason, queuedAt: new Date().toISOString() };
+        profile.pendingFailure = pendingFailure;
+        resetSnoozedThisSession = false;
+        saveProfile();
+        log("FAILURE_QUEUED", day);
+      }
+      if (!resetSnoozedThisSession) showResetModal();
+    }
+
+    function showResetModal() {
+      if (!pendingFailure) return;
+      const d = pendingFailure.failedDay;
+      document.getElementById("reset-modal-msg").textContent =
+        "Day " + d + " ended without all rules completed (24-hour window closed). 75 Hard requires a fresh start — your previous run will be archived.";
+      const input = document.getElementById("reset-confirm-input");
+      input.value = "";
+      document.getElementById("btn-confirm-reset").disabled = true;
+      document.getElementById("reset-modal").classList.add("visible");
+    }
+    function hideResetModal() {
+      document.getElementById("reset-modal").classList.remove("visible");
+    }
+
+    async function archiveAndReset() {
+      if (!pendingFailure) return;
+      const { failedDay, reason } = pendingFailure;
+      profile.archive.push({
+        endedAt: new Date().toISOString(),
+        failedDay: failedDay, reason: reason,
+        startTimestamp: profile.startTimestamp,
+        days: JSON.parse(JSON.stringify(profile.days)),
+        completedDays: countDone()
+      });
+      // Keep photo IDs in archive — files stay in IDB so old photos remain viewable.
+      profile.days = {};
+      profile.startTimestamp = new Date().toISOString();
+      profile.startDate = todayISO();
+      profile.resetCount = (profile.resetCount || 0) + 1;
+      profile.pendingFailure = null;
+      profile.lastFailure = { day: failedDay, reason: reason, at: new Date().toISOString() };
+      pendingFailure = null;
+      resetSnoozedThisSession = false;
+      hideResetModal();
+      saveProfile();
+      lastUnlocked = 0;
+      log("CHALLENGE_RESET", profile.resetCount);
+      renderDashboard();
+      showScreen("dashboard");
+      syncReminders();
+    }
+
+    /* ═══════════ Realtime ═══════════ */
+    function tick() {
+      if (!profile || !profile.setup) return;
+      if (!pendingFailure) auditPastDays();
+      else if (!resetSnoozedThisSession) showResetModal();
+      const u = unlockedDay();
+      if (u !== lastUnlocked) {
+        log("DAY_UNLOCKED", lastUnlocked, "->", u);
+        lastUnlocked = u;
+        if (document.getElementById("s-dashboard").classList.contains("active")) renderDashboard();
+        scheduleReminders();
+      }
+      checkRemindersDue();
+    }
+
+    function startTicking() {
+      if (realtimeTimer) clearInterval(realtimeTimer);
+      lastUnlocked = unlockedDay();
+      tick();
+      realtimeTimer = setInterval(tick, TICK_MS);
+    }
+
+    /* ═══════════ Screens ═══════════ */
+    const SCREENS = ["rules","onboarding","dashboard","day","more","photos","profile","reminders","history","archive-detail","data"];
+    function showScreen(name) {
+      const key = name === "archiveDetail" ? "archive-detail" : name;
+      SCREENS.forEach(function (s) {
+        const el = document.getElementById("s-" + s);
+        if (!el) return;
+        const on = s === key;
+        el.classList.toggle("active", on);
+        el.setAttribute("aria-hidden", on ? "false" : "true");
+      });
+      window.scrollTo(0, 0);
+    }
+
+    /* ═══════════ Onboarding ═══════════ */
+    function switchUnitsUI() {
+      document.getElementById("metric-fields").style.display = units === "metric" ? "" : "none";
+      document.getElementById("imperial-fields").style.display = units === "imperial" ? "" : "none";
+      updateBmi();
+    }
+
+    function getHeightCm() {
+      if (units === "metric") return parseFloat(document.getElementById("height-cm").value) || 0;
+      const ft = parseFloat(document.getElementById("height-ft").value) || 0;
+      const inch = parseFloat(document.getElementById("height-in").value) || 0;
+      return (ft * 12 + inch) * 2.54;
+    }
+    function getWeightKg() {
+      if (units === "metric") return parseFloat(document.getElementById("weight-kg").value) || 0;
+      const lb = parseFloat(document.getElementById("weight-lb").value) || 0;
+      return lb * 0.45359237;
+    }
+
+    function updateBmi() {
+      const h = getHeightCm();
+      const w = getWeightKg();
+      const card = document.getElementById("bmi-card");
+      const el = document.getElementById("bmi-display");
+      if (!h || !w) {
+        card.classList.add("empty");
+        el.innerHTML = "<span>—</span><span class='cat'>Enter height &amp; weight</span>";
+        return null;
+      }
+      const bmi = Math.round((w / ((h/100)**2)) * 10) / 10;
+      let cat = "Normal";
+      if (bmi < 18.5) cat = "Underweight";
+      else if (bmi >= 30) cat = "Obese";
+      else if (bmi >= 25) cat = "Overweight";
+      card.classList.remove("empty");
+      el.innerHTML = "<span>" + bmi + "</span><span class='cat on'>" + cat + "</span>";
+      return bmi;
+    }
+
+    function validateOnboard() {
+      const name = document.getElementById("name").value.trim();
+      const age = +document.getElementById("age").value;
+      const gender = document.getElementById("gender").value;
+      const h = getHeightCm();
+      const w = getWeightKg();
+      const act = document.getElementById("activity").value;
+      const ok = name.length >= 2 && age >= 13 && age <= 120 && gender &&
+                 h >= 50 && h <= 300 && w >= 20 && w <= 500 && act;
+      document.getElementById("form-error").classList.toggle("visible", !ok);
+      return ok;
+    }
+
+    function submitOnboarding() {
+      if (!validateOnboard()) return;
+      const now = new Date().toISOString();
+      profile = {
+        name: document.getElementById("name").value.trim(),
+        age: +document.getElementById("age").value,
+        gender: document.getElementById("gender").value,
+        height: Math.round(getHeightCm() * 10) / 10,
+        weight: Math.round(getWeightKg() * 10) / 10,
+        activityLevel: document.getElementById("activity").value,
+        bmi: updateBmi(),
+        units: units,
+        startDate: todayISO(),
+        startTimestamp: now,
+        setup: true,
+        resetCount: 0,
+        archive: [],
+        days: {},
+        reminders: defaultReminders()
+      };
+      saveProfile();
+      log("CHALLENGE_STARTED", now);
+      renderDashboard();
+      showScreen("dashboard");
+      startTicking();
+      registerSW();
+    }
+
+    /* ═══════════ Dashboard ═══════════ */
+    function formatShort(d) {
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    }
+    function formatWindowEnd(endMs) {
+      const remaining = endMs - Date.now();
+      if (remaining <= 0) return "window closed";
+      const h = Math.floor(remaining / 3600000);
+      const m = Math.floor((remaining % 3600000) / 60000);
+      if (h >= 24) return Math.floor(h/24) + "d " + (h%24) + "h left";
+      if (h >= 1) return h + "h " + m + "m left";
+      return m + "m left";
+    }
+
+    function renderDashboard() {
+      if (!profile) return;
+      const u = unlockedDay();
+      const today = getDayData(u);
+      const done = countDone();
+      const pct = Math.round((done / TOTAL_DAYS) * 100);
+
+      document.getElementById("dash-greeting").textContent = "Day " + u + " of 75";
+      document.getElementById("dash-meta").textContent =
+        "Hi " + (profile.name || "").split(" ")[0] +
+        " · " + formatWindowEnd(dayEndMs(u)) +
+        (profile.resetCount ? " · " + profile.resetCount + " reset" + (profile.resetCount > 1 ? "s" : "") : "");
+
+      // Today card
+      const tasksDone = TASKS.filter(function (t) {
+        if (t.id === "photo") return dayPhotoCount(today) > 0;
+        return !!today.tasks[t.id];
+      }).length;
+      document.getElementById("today-tasks").textContent = tasksDone + "/" + TASKS.length;
+      document.getElementById("today-water").textContent = today.water + "/" + WATER_GOAL;
+      document.getElementById("today-photo").textContent = Math.min(dayPhotoCount(today), 1) + "/1";
+      document.getElementById("btn-open-today").classList.toggle("complete", isDayComplete(today));
+
+      // Progress
+      document.getElementById("progress-text").textContent = done + " / 75";
+      document.getElementById("progress-fill").style.width = pct + "%";
+
+      // Calendar
+      const grid = document.getElementById("calendar-grid");
+      grid.innerHTML = "";
+      for (let i = 1; i <= TOTAL_DAYS; i++) {
+        const data = getDayData(i);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        const locked = !dayUnlocked(i);
+        btn.className = "day-btn" + (locked ? " locked" : "");
+        btn.setAttribute("role", "gridcell");
+        if (i === u && !locked) btn.classList.add("today");
+        if (isDayComplete(data)) btn.classList.add("done");
+        btn.innerHTML = i + "<span class='sub'>" + formatShort(new Date(dayStartMs(i))) + "</span>";
+        if (locked) {
+          btn.disabled = true;
+          btn.title = "Unlocks " + (i - 1) * 24 + "h after start";
+        } else {
+          (function (n) { btn.addEventListener("click", function () { openDay(n); }); })(i);
+        }
+        grid.appendChild(btn);
+      }
+    }
+
+    /* ═══════════ Day detail ═══════════ */
+    function openDay(n) {
+      if (pendingFailure && !resetSnoozedThisSession) { showResetModal(); return; }
+      if (!dayUnlocked(n)) return;
+      currentDay = n;
+      const d = getDayData(n);
+      document.getElementById("day-title").innerHTML =
+        "Day " + n + "<span>" + formatShort(new Date(dayStartMs(n))) + " · " + formatWindowEnd(dayEndMs(n)) + "</span>";
+
+      const list = document.getElementById("task-list");
+      list.innerHTML = "";
+      TASKS.forEach(function (task) {
+        const checked = task.id === "photo" ? dayPhotoCount(d) > 0 : !!d.tasks[task.id];
+        const li = document.createElement("li");
+        li.className = "task-item" + (checked ? " done" : "") + (task.id === "photo" ? " auto" : "");
+        li.innerHTML = '<span class="task-check"></span><span class="task-text">' + task.label +
+                       '<small>' + task.hint + '</small></span>';
+        if (task.id !== "photo") {
+          li.addEventListener("click", function () {
+            d.tasks[task.id] = !d.tasks[task.id];
+            li.classList.toggle("done", d.tasks[task.id]);
+            syncDayState(d);
+          });
+        }
+        list.appendChild(li);
+      });
+
+      document.getElementById("water-count").textContent = d.water;
+      document.getElementById("day-notes").value = d.notes || "";
+      renderPhotos(d);
+      showScreen("day");
+    }
+
+    async function renderPhotos(d) {
+      const grid = document.getElementById("photo-grid");
+      grid.innerHTML = "";
+      const ids = d.photoIds || [];
+      for (let i = 0; i < ids.length; i++) {
+        const id = ids[i];
+        const url = await getPhotoUrl(id);
+        const wrap = document.createElement("div");
+        wrap.className = "photo-thumb";
+        wrap.innerHTML = '<img src="' + (url || "") + '" alt="Proof ' + (i+1) + '">' +
+                         '<button type="button" class="remove" aria-label="Remove">×</button>';
+        (function (id, idx) {
+          wrap.querySelector(".remove").addEventListener("click", async function (e) {
+            e.stopPropagation();
+            try { await idbDel(id); } catch (e) {}
+            releasePhotoUrl(id);
+            d.photoIds.splice(idx, 1);
+            syncDayState(d);
+            openDay(currentDay);  // re-render full screen
+          });
+        })(id, i);
+        grid.appendChild(wrap);
+      }
+      if (ids.length < MAX_PHOTOS) {
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "photo-add";
+        add.innerHTML = "<span>+</span>Add photo";
+        add.addEventListener("click", function () { document.getElementById("photo-input").click(); });
+        grid.appendChild(add);
+      }
+    }
+
+    function compressImage(file) {
+      return new Promise(function (res, rej) {
+        const fr = new FileReader();
+        fr.onload = function () {
+          const img = new Image();
+          img.onload = function () {
+            const max = 800;
+            let w = img.width, h = img.height;
+            if (w > h && w > max) { h = h * max / w; w = max; }
+            else if (h > max)     { w = w * max / h; h = max; }
+            const c = document.createElement("canvas");
+            c.width = w; c.height = h;
+            c.getContext("2d").drawImage(img, 0, 0, w, h);
+            c.toBlob(function (b) { b ? res(b) : rej(new Error("Encode failed")); }, "image/jpeg", 0.75);
+          };
+          img.onerror = function () { rej(new Error("Image load failed")); };
+          img.src = fr.result;
+        };
+        fr.onerror = function () { rej(fr.error); };
+        fr.readAsDataURL(file);
+      });
+    }
+
+    async function handlePhotoUpload(file) {
+      const d = getDayData(currentDay);
+      if ((d.photoIds || []).length >= MAX_PHOTOS) return;
+      try {
+        const blob = await compressImage(file);
+        const id = newId();
+        await idbPut(id, blob);
+        if (!d.photoIds) d.photoIds = [];
+        d.photoIds.push(id);
+        syncDayState(d);
+        openDay(currentDay);
+      } catch (e) {
+        log("PHOTO_FAIL", e.message);
+        alert("Couldn't save the photo: " + e.message);
+      }
+    }
+
+    /* ═══════════ Reminders ═══════════ */
+    function getRem() {
+      if (!profile.reminders) profile.reminders = defaultReminders();
+      return profile.reminders;
+    }
+
+    function parseTimeOnDate(t, base) {
+      const parts = t.split(":");
+      const h = parseInt(parts[0], 10), m = parseInt(parts[1] || 0, 10);
+      const d = new Date(base);
+      d.setHours(h, m, 0, 0);
+      return d.getTime();
+    }
+
+    function isoDate(ms) {
+      const d = new Date(ms);
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    }
+
+    function buildEvents() {
+      if (!profile || !profile.setup) return [];
+      const s = getRem();
+      if (!s.enabled) return [];
+      const now = Date.now();
+      const today = new Date();
+      const tomorrow = new Date(today.getTime() + MS_PER_DAY);
+      const events = [];
+
+      function add(baseTag, title, body, at, action) {
+        if (at <= now || at > now + 48 * 3600000) return;
+        const tag = baseTag + "@" + isoDate(at);   // date-scoped tag prevents collisions
+        events.push({
+          id: tag, tag: tag, title: title, body: body, at: at,
+          action: action || "dashboard",
+          silent: s.sound === false,
+          vibrate: s.vibrate !== false ? [200,100,200] : []
+        });
+      }
+
+      if (s.water.enabled) {
+        s.water.times.forEach(function (t, i) {
+          add("water-" + i, "💧 Drink water", "Goal: 16 glasses today.", parseTimeOnDate(t, today), "water");
+          add("water-" + i, "💧 Drink water", "Goal: 16 glasses today.", parseTimeOnDate(t, tomorrow), "water");
+        });
+      }
+      if (s.tasks.enabled) {
+        add("tasks", "✅ Daily tasks", "Check off your 75 Hard tasks.", parseTimeOnDate(s.tasks.time, today), "tasks");
+        add("tasks", "✅ Daily tasks", "Check off your 75 Hard tasks.", parseTimeOnDate(s.tasks.time, tomorrow), "tasks");
+      }
+      if (s.windowEnd.enabled) {
+        const u = unlockedDay();
+        const warnAt = dayEndMs(u) - s.windowEnd.minutesBefore * 60000;
+        if (!isDayComplete(getDayData(u))) {
+          add("window-" + u, "⏰ Day " + u + " ending soon", "Finish all tasks, water, and a photo.", warnAt, "day");
+        }
+      }
+      s.custom.forEach(function (cr, i) {
+        if (!cr.time || !cr.name) return;
+        add("custom-" + i, "🔔 " + cr.name, "Tap to open the app.", parseTimeOnDate(cr.time, today), cr.action || "dashboard");
+        add("custom-" + i, "🔔 " + cr.name, "Tap to open the app.", parseTimeOnDate(cr.time, tomorrow), cr.action || "dashboard");
+      });
+
+      return events;
+    }
+
+    function cancelLocal() {
+      mainTimers.forEach(clearTimeout);
+      mainTimers = [];
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "CANCEL_REMINDERS" });
+      }
+    }
+
+    function cleanupFiredMap(s) {
+      // Drop entries with date older than 2 days ago.
+      const cutoff = isoDate(Date.now() - 2 * MS_PER_DAY);
+      Object.keys(s.fired).forEach(function (k) {
+        const date = k.slice(-10);
+        if (date < cutoff) delete s.fired[k];
+      });
+    }
+
+    function fireIfNeeded(ev) {
+      const s = getRem();
+      if (!s.enabled) return;
+      if (s.fired[ev.tag]) return;
+      showNotif(ev.title, ev.body, ev.tag, ev.action).then(function (ok) {
+        if (ok) {
+          s.fired[ev.tag] = true;
+          cleanupFiredMap(s);
+          saveProfile();
+        }
+      });
+    }
+
+    function scheduleMain(events) {
+      const now = Date.now();
+      events.forEach(function (ev) {
+        const delay = ev.at - now;
+        if (delay > 0 && delay < 48 * 3600000) {
+          mainTimers.push(setTimeout(function () { fireIfNeeded(ev); }, delay));
+        }
+      });
+    }
+
+    async function showNotif(title, body, tag, action) {
+      if (!("Notification" in window) || Notification.permission !== "granted") return false;
+      const s = getRem();
+      const opts = {
+        body: body, tag: tag || "75hard",
+        silent: s.sound === false,
+        vibrate: s.vibrate !== false ? [200,100,200] : [],
+        data: { tag: tag, action: action || "dashboard" }
+      };
+      try {
+        if (swReg && swReg.showNotification) await swReg.showNotification(title, opts);
+        else new Notification(title, opts);
+        return true;
+      } catch (e) { log("NOTIF_FAIL", e.message); return false; }
+    }
+
+    function checkRemindersDue() {
+      if (!profile || !profile.setup) return;
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const s = getRem();
+      if (!s.enabled) return;
+      const now = Date.now();
+      if (now - lastRemCheckMs < 60000) return;
+      lastRemCheckMs = now;
+      buildEvents().forEach(function (ev) {
+        if (ev.at <= now && ev.at > now - 90000) fireIfNeeded(ev);
+      });
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "CHECK_REMINDERS" });
+      }
+    }
+
+    async function registerSW() {
+      if (!("serviceWorker" in navigator)) return null;
+      try {
+        swReg = await navigator.serviceWorker.register("./sw.js");
+        await navigator.serviceWorker.ready;
+        log("SW_REGISTERED");
+        return swReg;
+      } catch (e) { log("SW_FAIL", e.message); return null; }
+    }
+
+    async function requestNotifPermission() {
+      if (!("Notification" in window)) return "unsupported";
+      if (Notification.permission === "granted") return "granted";
+      if (Notification.permission === "denied")  return "denied";
+      const r = await Notification.requestPermission();
+      updatePermStatus();
+      if (r === "granted") {
+        await registerSW();
+        syncReminders();
+      }
+      return r;
+    }
+
+    function updatePermStatus() {
+      const el = document.getElementById("perm-status");
+      const btn = document.getElementById("btn-request-permission");
+      if (!el) return;
+      if (!("Notification" in window)) {
+        el.textContent = "Notifications aren't supported in this browser.";
+        el.className = "perm-status denied";
+        if (btn) btn.disabled = true;
+        return;
+      }
+      const p = Notification.permission;
+      if (p === "granted") {
+        el.textContent = "Notifications allowed.";
+        el.className = "perm-status granted";
+        if (btn) btn.style.display = "none";
+      } else if (p === "denied") {
+        el.textContent = "Notifications blocked. Change in browser site settings.";
+        el.className = "perm-status denied";
+        if (btn) btn.style.display = "block";
+      } else {
+        el.textContent = "Tap to allow reminder notifications.";
+        el.className = "perm-status";
+        if (btn) btn.style.display = "block";
+      }
+    }
+
+    async function syncReminders() {
+      cancelLocal();
+      if (!profile || !profile.setup) return;
+      const s = getRem();
+      cleanupFiredMap(s);
+      saveProfile();
+      if (!s.enabled || !("Notification" in window) || Notification.permission !== "granted") return;
+      const events = buildEvents();
+      scheduleMain(events);
+      await registerSW();
+      if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({ type: "SCHEDULE_REMINDERS", reminders: events });
+      } else if (navigator.serviceWorker) {
+        navigator.serviceWorker.addEventListener("controllerchange", function once() {
+          navigator.serviceWorker.removeEventListener("controllerchange", once);
+          if (navigator.serviceWorker.controller) {
+            navigator.serviceWorker.controller.postMessage({ type: "SCHEDULE_REMINDERS", reminders: events });
+          }
+        });
+      }
+      log("REMINDERS_SCHEDULED", events.length);
+    }
+    function scheduleReminders() { return syncReminders(); }
+
+    /* Reminder UI */
+    function fillRemForm() {
+      const s = getRem();
+      const $ = function (id) { return document.getElementById(id); };
+      $("rem-master").checked = s.enabled;
+      $("rem-sound").checked = s.sound !== false;
+      $("rem-vibrate").checked = s.vibrate !== false;
+      $("rem-water-enabled").checked = s.water.enabled;
+      [1,2,3,4,5].forEach(function (i) { $("rem-water-" + i).value = s.water.times[i-1] || ""; });
+      $("rem-tasks-enabled").checked = s.tasks.enabled;
+      $("rem-tasks-time").value = s.tasks.time;
+      $("rem-window-enabled").checked = s.windowEnd.enabled;
+      $("rem-window-before").value = String(s.windowEnd.minutesBefore);
+      renderCustomReminders();
+      updatePermStatus();
+      updateIosNote();
+    }
+    function readRemForm() {
+      const s = getRem();
+      const $ = function (id) { return document.getElementById(id); };
+      s.enabled = $("rem-master").checked;
+      s.sound = $("rem-sound").checked;
+      s.vibrate = $("rem-vibrate").checked;
+      s.water.enabled = $("rem-water-enabled").checked;
+      s.water.times = [1,2,3,4,5].map(function (i) { return $("rem-water-" + i).value; });
+      s.tasks.enabled = $("rem-tasks-enabled").checked;
+      s.tasks.time = $("rem-tasks-time").value;
+      s.windowEnd.enabled = $("rem-window-enabled").checked;
+      s.windowEnd.minutesBefore = +$("rem-window-before").value;
+      return s;
+    }
+    function renderCustomReminders() {
+      const s = getRem();
+      const list = document.getElementById("custom-rem-list");
+      list.innerHTML = "";
+      if (!s.custom.length) {
+        list.innerHTML = "<p style='font-size:0.8125rem;color:var(--muted);padding:0.5rem 0;'>No custom reminders yet.</p>";
+        return;
+      }
+      const labels = { dashboard: "Calendar", water: "Water", tasks: "Tasks" };
+      s.custom.forEach(function (cr, i) {
+        const row = document.createElement("div");
+        row.className = "custom-rem-row";
+        row.innerHTML = '<span class="cr-name">' + cr.name + '</span>' +
+                        '<span class="cr-time">' + cr.time + ' · ' + (labels[cr.action] || "Calendar") + '</span>' +
+                        '<button type="button" class="cr-del" aria-label="Delete">×</button>';
+        row.querySelector(".cr-del").addEventListener("click", function () {
+          s.custom.splice(i, 1);
+          saveProfile();
+          renderCustomReminders();
+        });
+        list.appendChild(row);
+      });
+    }
+
+    /* ═══════════ Gallery ═══════════ */
+    let galleryPhotos = [];
+    let galleryActiveRun = "all";
+    let lightboxIndex = 0;
+    let lightboxFiltered = [];
+
+    async function collectAllPhotos() {
+      const photos = [];
+      async function pushDays(daysObj, runId, runLabel) {
+        const keys = Object.keys(daysObj).map(Number).sort(function (a,b) { return a-b; });
+        for (const dn of keys) {
+          const d = daysObj[String(dn)];
+          if (!d.photoIds) continue;
+          for (const id of d.photoIds) {
+            const url = await getPhotoUrl(id);
+            if (url) photos.push({ url: url, dayNum: dn, runId: runId, runLabel: runLabel });
+          }
+        }
+      }
+      await pushDays(profile.days || {}, "current", "Current run");
+      const archive = profile.archive || [];
+      for (let r = 0; r < archive.length; r++) {
+        if (archive[r].days) await pushDays(archive[r].days, "archive-" + r, "Run #" + (r+1));
+      }
+      return photos;
+    }
+
+    async function openGallery() {
+      galleryPhotos = await collectAllPhotos();
+      galleryActiveRun = "all";
+      renderGalleryFilters();
+      renderGallery();
+      showScreen("photos");
+    }
+
+    function renderGalleryFilters() {
+      const row = document.getElementById("gallery-filter-row");
+      row.innerHTML = "";
+      const seen = {};
+      const runs = [{ id: "all", label: "All" }];
+      galleryPhotos.forEach(function (p) {
+        if (!seen[p.runId]) { seen[p.runId] = true; runs.push({ id: p.runId, label: p.runLabel }); }
+      });
+      runs.forEach(function (run) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "gallery-filter-btn" + (run.id === galleryActiveRun ? " active" : "");
+        btn.textContent = run.label;
+        btn.addEventListener("click", function () {
+          galleryActiveRun = run.id;
+          renderGalleryFilters();
+          renderGallery();
+        });
+        row.appendChild(btn);
+      });
+    }
+
+    function renderGallery() {
+      const grid = document.getElementById("gallery-grid");
+      const sub = document.getElementById("gallery-subtitle");
+      const filtered = galleryActiveRun === "all"
+        ? galleryPhotos : galleryPhotos.filter(function (p) { return p.runId === galleryActiveRun; });
+      lightboxFiltered = filtered;
+      grid.innerHTML = "";
+      if (!filtered.length) {
+        grid.innerHTML = '<div class="gallery-empty"><span class="ge-icon">📷</span>No photos yet.<br>Add progress photos in your daily log.</div>';
+        sub.textContent = "0 photos";
+        return;
+      }
+      sub.textContent = filtered.length + " photo" + (filtered.length !== 1 ? "s" : "");
+      filtered.forEach(function (photo, idx) {
+        const wrap = document.createElement("div");
+        wrap.className = "gallery-thumb-wrap";
+        wrap.innerHTML = '<img class="gallery-thumb" src="' + photo.url + '" alt="Day ' + photo.dayNum + ' photo" loading="lazy">' +
+                         '<div class="gallery-thumb-label">Day ' + photo.dayNum + '</div>';
+        wrap.querySelector("img").addEventListener("click", function () { openLightbox(idx); });
+        grid.appendChild(wrap);
+      });
+    }
+
+    function openLightbox(i) {
+      lightboxIndex = i;
+      updateLightbox();
+      document.getElementById("lightbox").classList.add("visible");
+    }
+    function updateLightbox() {
+      const p = lightboxFiltered[lightboxIndex];
+      if (!p) return;
+      document.getElementById("lightbox-img").src = p.url;
+      document.getElementById("lightbox-meta").innerHTML = "<strong>Day " + p.dayNum + "</strong>" + p.runLabel;
+      document.getElementById("lightbox-prev").style.visibility = lightboxIndex > 0 ? "visible" : "hidden";
+      document.getElementById("lightbox-next").style.visibility = lightboxIndex < lightboxFiltered.length - 1 ? "visible" : "hidden";
+    }
+    function closeLightbox() {
+      document.getElementById("lightbox").classList.remove("visible");
+      document.getElementById("lightbox-img").src = "";
+    }
+
+    /* ═══════════ Edit profile ═══════════ */
+    function openEditProfile() {
+      document.getElementById("ep-name").value = profile.name || "";
+      document.getElementById("ep-age").value = profile.age || "";
+      document.getElementById("ep-gender").value = profile.gender || "";
+      document.getElementById("ep-height").value = profile.height || "";
+      document.getElementById("ep-weight").value = profile.weight || "";
+      document.getElementById("ep-activity").value = profile.activityLevel || "";
+      document.getElementById("ep-form-error").classList.remove("visible");
+      showScreen("profile");
+    }
+    function saveEditProfile() {
+      const name = document.getElementById("ep-name").value.trim();
+      const age = +document.getElementById("ep-age").value;
+      const h = parseFloat(document.getElementById("ep-height").value);
+      const w = parseFloat(document.getElementById("ep-weight").value);
+      const ok = name.length >= 2 && age >= 13 && age <= 120 && h >= 50 && h <= 300 && w >= 20 && w <= 500;
+      document.getElementById("ep-form-error").classList.toggle("visible", !ok);
+      if (!ok) return;
+      profile.name = name;
+      profile.age = age;
+      profile.gender = document.getElementById("ep-gender").value;
+      profile.height = h;
+      profile.weight = w;
+      profile.activityLevel = document.getElementById("ep-activity").value;
+      profile.bmi = Math.round((w / ((h/100)**2)) * 10) / 10;
+      saveProfile();
+      renderDashboard();
+      showScreen("dashboard");
+    }
+
+    /* ═══════════ History ═══════════ */
+    let viewingArchiveIdx = -1;
+
+    function renderHistory() {
+      const archive = profile.archive || [];
+      document.getElementById("history-subtitle").textContent =
+        archive.length === 0 ? "No resets yet"
+        : archive.length === 1 ? "1 past run"
+        : archive.length + " past runs";
+
+      const best = archive.reduce(function (b, e) { return Math.max(b, e.completedDays || 0); }, 0);
+      document.getElementById("history-summary").innerHTML =
+        '<div class="summary-card"><span class="s-val">' + archive.length + '</span><span class="s-label">Total resets</span></div>' +
+        '<div class="summary-card highlight"><span class="s-val">' + best + '</span><span class="s-label">Best streak (days)</span></div>';
+
+      const list = document.getElementById("archive-list");
+      list.innerHTML = "";
+      if (!archive.length) {
+        list.innerHTML = '<div class="history-empty"><span class="he-icon">🏆</span>No failed runs yet.<br>Keep going!</div>';
+        return;
+      }
+      const opts = { month: "short", day: "numeric", year: "numeric" };
+      archive.slice().reverse().forEach(function (entry, rIdx) {
+        const origIdx = archive.length - 1 - rIdx;
+        const startD = entry.startTimestamp ? new Date(entry.startTimestamp).toLocaleDateString(undefined, opts) : "?";
+        const endD = entry.endedAt ? new Date(entry.endedAt).toLocaleDateString(undefined, opts) : "?";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "archive-entry";
+        btn.innerHTML = '<div class="ae-day">Run #' + (origIdx+1) + ' · Failed Day ' + (entry.failedDay || "?") + '</div>' +
+                        '<div class="ae-meta">' + startD + ' → ' + endD + '<br>' + (entry.completedDays || 0) + ' days completed</div>' +
+                        '<span class="ae-chevron">›</span>';
+        btn.addEventListener("click", function () { openArchiveDetail(origIdx); });
+        list.appendChild(btn);
+      });
+    }
+
+    function openArchiveDetail(idx) {
+      viewingArchiveIdx = idx;
+      const entry = profile.archive[idx];
+      if (!entry) return;
+      document.getElementById("detail-title").innerHTML =
+        "Run #" + (idx+1) + "<span>" + (entry.completedDays || 0) + " days completed · Failed Day " + (entry.failedDay || "?") + "</span>";
+      let html = '<div class="detail-meta-grid">' +
+        '<div class="detail-meta-item"><span class="dm-val">' + (entry.completedDays || 0) + '</span><span class="dm-label">Days completed</span></div>' +
+        '<div class="detail-meta-item"><span class="dm-val">' + (entry.failedDay || "?") + '</span><span class="dm-label">Failed on day</span></div>' +
+        '</div>';
+      if (entry.days) {
+        html += '<h3 class="section-title">Day log</h3><div class="detail-tasks">';
+        const maxDay = Math.min(entry.failedDay || TOTAL_DAYS, TOTAL_DAYS);
+        for (let d = 1; d <= maxDay; d++) {
+          const dd = entry.days[String(d)];
+          const complete = dd && (dd.water >= WATER_GOAL &&
+            (((dd.photoIds||[]).length + (dd.photos||[]).length) > 0) &&
+            TASKS.filter(function (t) { return t.id !== "photo"; }).every(function (t) { return dd.tasks && dd.tasks[t.id]; }));
+          html += '<div class="detail-day-row' + (complete ? " complete" : "") + '">' +
+                  '<span class="dr-day">Day ' + d + '</span>' +
+                  '<span class="dr-status">' + (complete ? "✓ Complete" : "✗ Incomplete") + '</span></div>';
+        }
+        html += '</div>';
+      }
+      document.getElementById("detail-content").innerHTML = html;
+      showScreen("archive-detail");
+    }
+
+    async function deleteArchiveEntry(idx) {
+      const entry = profile.archive[idx];
+      if (!entry) return;
+      if (entry.days) {
+        for (const k of Object.keys(entry.days)) {
+          const ids = entry.days[k].photoIds || [];
+          for (const id of ids) {
+            try { await idbDel(id); } catch (e) {}
+            releasePhotoUrl(id);
+          }
+        }
+      }
+      profile.archive.splice(idx, 1);
+      saveProfile();
+      renderHistory();
+      showScreen("history");
+    }
+
+    /* ═══════════ Backup / restore ═══════════ */
+    async function exportBackup() {
+      if (!profile) return;
+      try {
+        const ids = await idbListIds();
+        const photoMap = {};
+        for (const id of ids) {
+          const blob = await idbGet(id);
+          if (blob) photoMap[id] = await blobToDataUrl(blob);
+        }
+        const payload = {
+          app: "75hard",
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          profile: profile,
+          photos: photoMap
+        };
+        const json = JSON.stringify(payload);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "75hard-backup-" + todayISO() + ".json";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        log("BACKUP_EXPORTED", Object.keys(photoMap).length);
+      } catch (e) {
+        log("EXPORT_FAIL", e.message);
+        alert("Export failed: " + e.message);
+      }
+    }
+
+    async function importBackup(file) {
+      if (!confirm("Importing will OVERWRITE everything on this device. Continue?")) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.profile) { alert("This file doesn't look like a 75 Hard backup."); return; }
+
+        // Clear IDB
+        const existing = await idbListIds();
+        for (const id of existing) { try { await idbDel(id); } catch (e) {} }
+        blobUrlCache.forEach(function (url) { URL.revokeObjectURL(url); });
+        blobUrlCache.clear();
+
+        // Restore photos
+        if (data.photos) {
+          for (const id of Object.keys(data.photos)) {
+            try { await idbPut(id, dataUrlToBlob(data.photos[id])); } catch (e) {}
+          }
+        }
+        profile = data.profile;
+        migrateProfile(profile);
+        pendingFailure = profile.pendingFailure || null;
+        units = profile.units || "metric";
+        saveProfile();
+        lastUnlocked = 0;
+        renderDashboard();
+        showScreen("dashboard");
+        syncReminders();
+        alert("Backup restored.");
+      } catch (e) {
+        log("IMPORT_FAIL", e.message);
+        alert("Import failed: " + e.message);
+      }
+    }
+
+    async function updateStorageInfo() {
+      const el = document.getElementById("storage-info");
+      if (!el) return;
+      try {
+        if (navigator.storage && navigator.storage.estimate) {
+          const est = await navigator.storage.estimate();
+          const usedMb = (est.usage / 1024 / 1024).toFixed(1);
+          const totalMb = (est.quota / 1024 / 1024).toFixed(0);
+          el.textContent = "Using " + usedMb + " MB of ~" + totalMb + " MB available on this device.";
+        } else {
+          el.textContent = "";
+        }
+      } catch (e) { el.textContent = ""; }
+    }
+
+    /* ═══════════ iOS install prompt ═══════════ */
+    function isIos() { return /iphone|ipad|ipod/i.test(navigator.userAgent); }
+    function isStandalone() {
+      return ("standalone" in navigator && navigator.standalone === true) ||
+        window.matchMedia("(display-mode: standalone)").matches;
+    }
+    function shouldShowIos() {
+      if (!isIos() || isStandalone()) return false;
+      const dismissed = localStorage.getItem(IOS_PROMPT_KEY);
+      if (dismissed) {
+        const daysSince = (Date.now() - +dismissed) / MS_PER_DAY;
+        if (daysSince < 3) return false;
+      }
+      return true;
+    }
+    function showIosPrompt() {
+      if (!shouldShowIos()) return;
+      document.getElementById("ios-prompt").classList.add("visible");
+    }
+    function dismissIos(remind) {
+      document.getElementById("ios-prompt").classList.remove("visible");
+      localStorage.setItem(IOS_PROMPT_KEY, String(remind ? Date.now() : Date.now() + 365 * MS_PER_DAY));
+    }
+    function updateIosNote() {
+      const note = document.getElementById("ios-install-note");
+      if (!note) return;
+      note.style.display = (isIos() && !isStandalone()) ? "block" : "none";
+    }
+
+    /* ═══════════ Wire up ═══════════ */
+
+    // Rules → Onboarding
+    document.getElementById("btn-begin").addEventListener("click", function () {
+      switchUnitsUI();
+      showScreen("onboarding");
+    });
+
+    // Units toggle
+    document.getElementById("units").addEventListener("change", function (e) {
+      units = e.target.value;
+      switchUnitsUI();
+    });
+    ["height-cm","weight-kg","height-ft","height-in","weight-lb"].forEach(function (id) {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener("input", updateBmi);
+    });
+
+    // Onboarding form
+    document.getElementById("setup-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      submitOnboarding();
+    });
+
+    // Dashboard
+    document.getElementById("btn-open-today").addEventListener("click", function () { openDay(unlockedDay()); });
+    document.getElementById("btn-open-more").addEventListener("click", function () { showScreen("more"); });
+
+    // More menu
+    document.getElementById("btn-more-back").addEventListener("click", function () { renderDashboard(); showScreen("dashboard"); });
+    document.getElementById("btn-more-photos").addEventListener("click", openGallery);
+    document.getElementById("btn-more-profile").addEventListener("click", openEditProfile);
+    document.getElementById("btn-more-reminders").addEventListener("click", function () {
+      fillRemForm();
+      setTimeout(showIosPrompt, 400);
+      showScreen("reminders");
+    });
+    document.getElementById("btn-more-history").addEventListener("click", function () { renderHistory(); showScreen("history"); });
+    document.getElementById("btn-more-backup").addEventListener("click", function () { updateStorageInfo(); showScreen("data"); });
+
+    // Day screen
+    document.getElementById("btn-back-calendar").addEventListener("click", function () {
+      const d = getDayData(currentDay);
+      d.notes = document.getElementById("day-notes").value;
+      syncDayState(d);
+      renderDashboard();
+      showScreen("dashboard");
+    });
+    document.getElementById("water-plus").addEventListener("click", function () {
+      const d = getDayData(currentDay);
+      d.water = Math.min((d.water || 0) + 1, 30);
+      document.getElementById("water-count").textContent = d.water;
+      syncDayState(d);
+    });
+    document.getElementById("water-minus").addEventListener("click", function () {
+      const d = getDayData(currentDay);
+      d.water = Math.max((d.water || 0) - 1, 0);
+      document.getElementById("water-count").textContent = d.water;
+      syncDayState(d);
+    });
+    document.getElementById("photo-input").addEventListener("change", function (e) {
+      const f = e.target.files[0];
+      if (f) handlePhotoUpload(f);
+      e.target.value = "";
+    });
+    document.getElementById("btn-save-day").addEventListener("click", function () {
+      const d = getDayData(currentDay);
+      d.notes = document.getElementById("day-notes").value;
+      syncDayState(d);
+      renderDashboard();
+      showScreen("dashboard");
+    });
+
+    // Photos
+    document.getElementById("btn-back-photos").addEventListener("click", function () { showScreen("more"); });
+
+    // Profile
+    document.getElementById("btn-back-profile").addEventListener("click", function () { showScreen("more"); });
+    document.getElementById("btn-save-profile").addEventListener("click", saveEditProfile);
+
+    // Reminders
+    document.getElementById("btn-back-reminders").addEventListener("click", function () { showScreen("more"); });
+    document.getElementById("btn-request-permission").addEventListener("click", requestNotifPermission);
+    document.getElementById("btn-save-reminders").addEventListener("click", async function () {
+      readRemForm();
+      saveProfile();
+      if (getRem().enabled && Notification.permission !== "granted") {
+        const r = await requestNotifPermission();
+        if (r !== "granted") return;
+      }
+      await syncReminders();
+      showScreen("more");
+    });
+
+    // Custom reminder modal
+    document.getElementById("btn-add-custom-rem").addEventListener("click", function () {
+      document.getElementById("cr-name").value = "";
+      document.getElementById("cr-time").value = "07:00";
+      document.getElementById("cr-action").value = "dashboard";
+      document.getElementById("cr-modal").classList.add("visible");
+    });
+    document.getElementById("btn-cr-cancel").addEventListener("click", function () {
+      document.getElementById("cr-modal").classList.remove("visible");
+    });
+    document.getElementById("cr-modal").addEventListener("click", function (e) {
+      if (e.target === this) this.classList.remove("visible");
+    });
+    document.getElementById("btn-cr-save").addEventListener("click", function () {
+      const name = document.getElementById("cr-name").value.trim();
+      const time = document.getElementById("cr-time").value;
+      const action = document.getElementById("cr-action").value;
+      if (!name || !time) return;
+      const s = getRem();
+      s.custom.push({ name: name, time: time, action: action });
+      saveProfile();
+      renderCustomReminders();
+      document.getElementById("cr-modal").classList.remove("visible");
+    });
+
+    // History
+    document.getElementById("btn-back-history").addEventListener("click", function () { showScreen("more"); });
+    document.getElementById("btn-back-detail").addEventListener("click", function () { renderHistory(); showScreen("history"); });
+    document.getElementById("btn-delete-entry").addEventListener("click", function () {
+      if (viewingArchiveIdx < 0) return;
+      const entry = profile.archive[viewingArchiveIdx];
+      if (!entry) return;
+      document.getElementById("delete-modal-msg").textContent =
+        "Delete Run #" + (viewingArchiveIdx + 1) + "? This cannot be undone, and any photos from that run will be erased.";
+      document.getElementById("delete-modal").classList.add("visible");
+    });
+    document.getElementById("btn-confirm-delete").addEventListener("click", function () {
+      document.getElementById("delete-modal").classList.remove("visible");
+      if (viewingArchiveIdx >= 0) deleteArchiveEntry(viewingArchiveIdx);
+    });
+    document.getElementById("btn-dismiss-delete").addEventListener("click", function () {
+      document.getElementById("delete-modal").classList.remove("visible");
+    });
+
+    // Backup
+    document.getElementById("btn-back-data").addEventListener("click", function () { showScreen("more"); });
+    document.getElementById("btn-export").addEventListener("click", exportBackup);
+    document.getElementById("btn-import").addEventListener("click", function () { document.getElementById("import-input").click(); });
+    document.getElementById("import-input").addEventListener("change", function (e) {
+      const f = e.target.files[0];
+      if (f) importBackup(f);
+      e.target.value = "";
+    });
+
+    // Reset modal
+    document.getElementById("reset-confirm-input").addEventListener("input", function (e) {
+      document.getElementById("btn-confirm-reset").disabled = e.target.value.trim().toUpperCase() !== "RESET";
+    });
+    document.getElementById("btn-confirm-reset").addEventListener("click", archiveAndReset);
+    document.getElementById("btn-dismiss-reset").addEventListener("click", function () {
+      hideResetModal();
+      resetSnoozedThisSession = true;
+      log("RESET_SNOOZED");
+    });
+
+    // Lightbox
+    document.getElementById("lightbox-close").addEventListener("click", closeLightbox);
+    document.getElementById("lightbox").addEventListener("click", function (e) { if (e.target === this) closeLightbox(); });
+    document.getElementById("lightbox-prev").addEventListener("click", function () { if (lightboxIndex > 0) { lightboxIndex--; updateLightbox(); } });
+    document.getElementById("lightbox-next").addEventListener("click", function () { if (lightboxIndex < lightboxFiltered.length - 1) { lightboxIndex++; updateLightbox(); } });
+    (function () {
+      let startX = 0;
+      const lb = document.getElementById("lightbox");
+      lb.addEventListener("touchstart", function (e) { startX = e.touches[0].clientX; }, { passive: true });
+      lb.addEventListener("touchend", function (e) {
+        const dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) < 40) return;
+        if (dx < 0 && lightboxIndex < lightboxFiltered.length - 1) { lightboxIndex++; updateLightbox(); }
+        if (dx > 0 && lightboxIndex > 0) { lightboxIndex--; updateLightbox(); }
+      }, { passive: true });
+    })();
+
+    // iOS prompt
+    document.getElementById("ios-prompt-close").addEventListener("click", function () { dismissIos(false); });
+    document.getElementById("ios-prompt-remind").addEventListener("click", function () { dismissIos(true); });
+
+    // SW notification clicks
+    if (navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener("message", function (e) {
+        const d = e.data || {};
+        if (d.type === "NOTIFICATION_CLICKED") {
+          if (!profile || !profile.setup) return;
+          if (d.action === "water") {
+            const dd = getDayData(unlockedDay());
+            dd.water = Math.min((dd.water || 0) + 1, 30);
+            syncDayState(dd);
+            openDay(unlockedDay());
+          } else if (d.action === "tasks" || d.action === "day") {
+            openDay(unlockedDay());
+          } else {
+            renderDashboard();
+            showScreen("dashboard");
+          }
+        }
+      });
+    }
+
+    // Visibility → cleanup fired map + run a tick
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden && profile && profile.setup) {
+        cleanupFiredMap(getRem());
+        saveProfile();
+        tick();
+      }
+    });
+
+    /* ═══════════ Init ═══════════ */
+    profile = loadProfile();
+    if (profile && profile.setup) {
+      units = profile.units || "metric";
+      if (profile.pendingFailure) pendingFailure = profile.pendingFailure;
+      renderDashboard();
+      showScreen("dashboard");
+      startTicking();
+      registerSW().then(function () {
+        if (Notification.permission === "granted") syncReminders();
+      });
+      setTimeout(showIosPrompt, 2000);
+      migratePhotosToIdb().then(function () {
+        // Re-render so newly-migrated photo counts are visible
+        if (document.getElementById("s-dashboard").classList.contains("active")) renderDashboard();
+      });
+    } else {
+      showScreen("rules");
+    }
+
+    /* ═══════════ Debug helpers ═══════════ */
+    Object.defineProperty(window, "Hard75Test", { value: {
+      getProfile: function () { return profile; },
+      unlockedDay: unlockedDay,
+      setStartHoursAgo: function (h) {
+        profile.startTimestamp = new Date(Date.now() - h * 3600000).toISOString();
+        profile.pendingFailure = null;
+        pendingFailure = null;
+        resetSnoozedThisSession = false;
+        saveProfile();
+        lastUnlocked = 0;
+        tick();
+        renderDashboard();
+        log("TEST_setStartHoursAgo", h);
+      },
+      completeDay: function (n) {
+        const d = getDayData(n);
+        TASKS.forEach(function (t) { if (t.id !== "photo") d.tasks[t.id] = true; });
+        d.water = WATER_GOAL;
+        if ((d.photoIds || []).length === 0 && (d.photos || []).length === 0) {
+          const id = "test-" + n + "-" + Date.now();
+          idbPut(id, new Blob(["test"], { type: "image/jpeg" })).then(function () {
+            d.photoIds.push(id);
+            syncDayState(d);
+            renderDashboard();
+          });
+        } else { syncDayState(d); renderDashboard(); }
+      },
+      exportBackup: exportBackup,
+      auditPastDays: auditPastDays,
+      buildEvents: buildEvents
+    }});
+    log("App ready. Hard75Test available in console.");
+  })();
+  </script>
+</body>
+</html>
