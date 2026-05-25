@@ -116,8 +116,3 @@ async function showReminderNotification(r) {
     requireInteraction: false
   });
 }
-
-window.logEvent(window.analytics, 'completed_task');
-window.logEvent(window.analytics, 'started_challenge');
-window.logEvent(window.analytics, 'reset_challenge');
-window.logEvent(window.analytics, 'opened_progress');
