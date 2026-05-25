@@ -1054,122 +1054,381 @@
 
     .edit-profile-note strong { color: var(--text); }
 
-    /* ——— Export / Import ——— */
-    .export-import-section {
-      margin-top: 1.5rem;
-      border-top: 1px solid var(--border);
-      padding-top: 1.25rem;
-    }
-
-    .export-import-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    /* ——— Warning Strip ——— */
+    .warn-strip {
+      display: none;
+      align-items: center;
       gap: 0.625rem;
-      margin-top: 0.75rem;
-    }
-
-    .btn-export {
-      font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--green-text);
-      background: var(--green-soft);
-      border: 1px solid var(--green);
+      padding: 0.75rem 1rem;
       border-radius: var(--radius-sm);
-      padding: 0.875rem 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.8125rem;
+      line-height: 1.4;
+      border: 1px solid;
       cursor: pointer;
-      text-align: center;
       -webkit-tap-highlight-color: transparent;
-      transition: filter 0.15s;
-      line-height: 1.3;
+      background: none;
+      width: 100%;
+      text-align: left;
+      font-family: inherit;
     }
 
-    .btn-export:hover { filter: brightness(1.1); }
-    .btn-export:active { filter: brightness(0.9); }
+    .warn-strip.visible { display: flex; }
 
-    .btn-import {
+    .warn-strip.danger {
+      border-color: rgba(232, 93, 93, 0.45);
+      background: rgba(232, 93, 93, 0.08);
+      color: #f08080;
+    }
+
+    .warn-strip.caution {
+      border-color: rgba(255, 193, 7, 0.45);
+      background: rgba(255, 193, 7, 0.07);
+      color: #ffc94d;
+    }
+
+    .warn-strip.safe {
+      border-color: rgba(45, 106, 45, 0.45);
+      background: rgba(45, 106, 45, 0.1);
+      color: var(--green-text);
+    }
+
+    .warn-strip-icon { font-size: 1.1rem; flex-shrink: 0; }
+    .warn-strip-body { flex: 1; }
+    .warn-strip-title { font-weight: 600; margin-bottom: 0.125rem; }
+    .warn-strip-sub { opacity: 0.85; font-size: 0.75rem; }
+    .warn-strip-arrow { flex-shrink: 0; opacity: 0.6; font-size: 1rem; }
+
+    /* ——— Quick Action Buttons ——— */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .quick-btn {
       font-family: inherit;
-      font-size: 0.875rem;
-      font-weight: 600;
-      color: var(--text);
-      background: transparent;
-      border: 1px solid var(--border-focus);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.75rem 0.5rem;
+      border: 1px solid var(--border);
       border-radius: var(--radius-sm);
-      padding: 0.875rem 0.75rem;
+      background: transparent;
+      color: var(--text);
       cursor: pointer;
-      text-align: center;
       -webkit-tap-highlight-color: transparent;
       transition: border-color 0.15s, background 0.15s;
-      line-height: 1.3;
     }
 
-    .btn-import:hover { background: rgba(255,255,255,0.04); }
-    .btn-import:active { background: rgba(255,255,255,0.08); }
+    .quick-btn:active { background: rgba(255,255,255,0.04); transform: scale(0.97); }
+    .quick-btn-icon { font-size: 1.375rem; line-height: 1; }
+    .quick-btn-label { font-size: 0.6875rem; font-weight: 500; color: var(--muted); letter-spacing: 0.02em; }
 
-    .export-note {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-top: 0.625rem;
-      line-height: 1.45;
-    }
-
-    /* Import confirm modal */
-    .import-modal-overlay {
+    /* ——— Completion Celebration ——— */
+    .celebration-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      z-index: 300;
-      background: rgba(0,0,0,0.88);
+      z-index: 500;
+      background: rgba(0,0,0,0.92);
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 1.25rem;
-    }
-    .import-modal-overlay.visible { display: flex; }
-
-    .import-modal-box {
-      width: 100%;
-      max-width: 22rem;
-      background: #0c0f0c;
-      border: 1px solid var(--border-focus);
-      border-radius: var(--radius);
-      padding: 1.5rem;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+      padding: 2rem 1.5rem;
+      text-align: center;
     }
 
-    .import-modal-box h3 {
-      font-size: 1.0625rem;
+    .celebration-overlay.visible { display: flex; }
+
+    .celebration-emoji {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: celebPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+
+    .celebration-title {
+      font-size: 2rem;
       font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--green-text);
       margin-bottom: 0.5rem;
+      animation: celebFadeUp 0.5s 0.15s ease both;
     }
 
-    .import-modal-box p {
-      font-size: 0.875rem;
+    .celebration-sub {
+      font-size: 1rem;
       color: var(--muted);
-      margin-bottom: 0.5rem;
-      line-height: 1.5;
+      line-height: 1.55;
+      max-width: 280px;
+      margin-bottom: 2rem;
+      animation: celebFadeUp 0.5s 0.25s ease both;
     }
 
-    .import-preview {
-      background: rgba(255,255,255,0.04);
+    .celebration-close {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--green);
+      border: none;
+      border-radius: 2rem;
+      padding: 1rem 2.5rem;
+      cursor: pointer;
+      animation: celebFadeUp 0.5s 0.35s ease both;
+    }
+
+    /* confetti pieces */
+    .confetti-piece {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      animation: confettiFall linear forwards;
+      pointer-events: none;
+    }
+
+    @keyframes celebPop {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes celebFadeUp {
+      from { transform: translateY(16px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    @keyframes confettiFall {
+      0%   { transform: translateY(-20px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* ——— Mascot ——— */
+    .mascot-wrap {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      padding: 0.875rem 1rem;
       border: 1px solid var(--border);
-      border-radius: var(--radius-xs);
-      padding: 0.75rem 1rem;
-      margin: 0.75rem 0 1.25rem;
-      font-size: 0.8125rem;
-      line-height: 1.6;
+      border-radius: var(--radius);
+      background: rgba(255,255,255,0.02);
     }
 
-    .import-preview strong { color: var(--green-text); }
+    .mascot-figure {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      position: relative;
+    }
 
-    .import-modal-actions {
+    .mascot-figure svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+    }
+
+    .mascot-bubble {
+      flex: 1;
+    }
+
+    .mascot-mood {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin-bottom: 0.25rem;
+    }
+
+    .mascot-msg {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    /* ——— Ideas Screen ——— */
+    #s-ideas {
+      max-height: 100dvh;
+      overflow-y: auto;
+    }
+
+    .ideas-tabs {
+      display: flex;
+      gap: 0.375rem;
+      margin-bottom: 1.25rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: var(--radius-sm);
+      padding: 0.25rem;
+    }
+
+    .ideas-tab {
+      flex: 1;
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.625rem 0.5rem;
+      border: none;
+      border-radius: calc(var(--radius-sm) - 2px);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .ideas-tab.active {
+      background: var(--green);
+      color: #fff;
+    }
+
+    .ideas-panel { display: none; }
+    .ideas-panel.active { display: block; }
+
+    .idea-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.125rem;
+      margin-bottom: 0.625rem;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .idea-card-top {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.375rem;
+    }
+
+    .idea-icon { font-size: 1.375rem; flex-shrink: 0; }
+
+    .idea-name {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .idea-badge {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.5rem;
+      border-radius: 2rem;
+      flex-shrink: 0;
+    }
+
+    .idea-badge.easy   { background: rgba(45,106,45,0.25);  color: var(--green-text); border: 1px solid rgba(45,106,45,0.4); }
+    .idea-badge.medium { background: rgba(255,193,7,0.15);  color: #ffc94d;           border: 1px solid rgba(255,193,7,0.3); }
+    .idea-badge.hard   { background: rgba(232,93,93,0.15);  color: var(--error);      border: 1px solid rgba(232,93,93,0.3); }
+
+    .idea-desc {
+      font-size: 0.8125rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    /* ——— Share Card ——— */
+    .share-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      background: rgba(0,0,0,0.92);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem 1.25rem;
+    }
+
+    .share-overlay.visible { display: flex; }
+
+    .share-card {
+      width: 100%;
+      max-width: 340px;
+      border-radius: 1.25rem;
+      overflow: hidden;
+      background: #0a0a0a;
+      border: 1px solid rgba(45,106,45,0.5);
+      box-shadow: 0 0 40px rgba(45,106,45,0.2);
+      margin-bottom: 1.25rem;
+    }
+
+    .share-card canvas {
+      width: 100%;
+      display: block;
+    }
+
+    .share-actions {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: 0.625rem;
+      width: 100%;
+      max-width: 340px;
     }
 
+    .btn-share-download {
+      width: 100%;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--green);
+      border: none;
+      border-radius: 2rem;
+      padding: 1rem;
+      cursor: pointer;
+      min-height: 3.25rem;
+    }
+
+    .btn-share-close {
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--muted);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2rem;
+      padding: 0.875rem;
+      cursor: pointer;
+    }
+
+    /* ——— Among Us Crewmates ——— */
+    #crewmate-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+    }
+
+    #crewmate-layer.hidden { display: none; }
+
+    .crewmate {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      will-change: transform;
+      transition: transform 0.08s linear;
+    }
+
+    .crewmate svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+    }
+
+    /* flip crewmate when moving left */
+    .crewmate.flipped svg { transform: scaleX(-1); }
   </style>
 </head>
 <body>
+  <!-- Among Us crewmate layer (onboarding + dashboard only) -->
+  <div id="crewmate-layer" class="hidden"></div>
+
   <div class="app" id="app">
 
     <!-- ONBOARDING -->
@@ -1372,7 +1631,17 @@
             <button type="button" class="btn-icon" id="btn-open-edit-profile" aria-label="Edit profile" style="background:transparent;">Profile</button>
             <button type="button" class="btn-icon" id="btn-open-settings" aria-label="Reminder settings" style="background:transparent;">Reminders</button>
             <button type="button" class="btn-icon" id="btn-open-history" aria-label="View reset history" style="background:transparent;">History</button>
+            <button type="button" class="btn-icon" id="btn-open-ideas" aria-label="Food and workout ideas" style="background:transparent;">Ideas</button>
           </div>
+        </div>
+      </div>
+
+      <!-- Mascot mood widget -->
+      <div class="mascot-wrap" id="mascot-wrap">
+        <div class="mascot-figure" id="mascot-figure"></div>
+        <div class="mascot-bubble">
+          <div class="mascot-mood" id="mascot-mood">Ready</div>
+          <div class="mascot-msg" id="mascot-msg">Let's get to work.</div>
         </div>
       </div>
       <div class="progress-bar-wrap">
@@ -1382,6 +1651,32 @@
         </div>
         <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
       </div>
+      <!-- Warning strip (shown when today is incomplete) -->
+      <button type="button" class="warn-strip" id="warn-strip" aria-live="polite">
+        <span class="warn-strip-icon" id="warn-strip-icon">⚠️</span>
+        <span class="warn-strip-body">
+          <span class="warn-strip-title" id="warn-strip-title"></span>
+          <span class="warn-strip-sub" id="warn-strip-sub"></span>
+        </span>
+        <span class="warn-strip-arrow">→</span>
+      </button>
+
+      <!-- Quick action buttons -->
+      <div class="quick-actions">
+        <button type="button" class="quick-btn" id="qbtn-today">
+          <span class="quick-btn-icon">📅</span>
+          <span class="quick-btn-label">Today</span>
+        </button>
+        <button type="button" class="quick-btn" id="qbtn-water">
+          <span class="quick-btn-icon">💧</span>
+          <span class="quick-btn-label">Log Water</span>
+        </button>
+        <button type="button" class="quick-btn" id="qbtn-photo">
+          <span class="quick-btn-icon">📸</span>
+          <span class="quick-btn-label">Add Photo</span>
+        </button>
+      </div>
+
       <div class="calendar-grid" id="calendar-grid" role="grid" aria-label="75 day challenge calendar"></div>
       <p style="text-align:center;margin-top:1rem;">
         <button type="button" id="btn-open-history-inline" style="font-family:inherit;font-size:0.8125rem;color:var(--muted);background:none;border:none;cursor:pointer;padding:0.25rem 0;text-decoration:underline;text-underline-offset:3px;">View reset history</button>
@@ -1429,6 +1724,7 @@
 
       <div class="day-actions">
         <button type="button" class="btn-primary" id="btn-save-day">Save day</button>
+        <button type="button" class="btn-secondary" id="btn-share-day" style="display:none;">Share this day 📤</button>
       </div>
     </section>
 
@@ -1509,37 +1805,8 @@
       <footer class="settings-footer">
         <button type="button" class="btn-primary" id="btn-save-reminders">Save &amp; schedule reminders</button>
       </footer>
-
-      <div class="export-import-section">
-        <h3 class="section-title" style="margin-top:0">Data backup</h3>
-        <p class="settings-note">Export your full progress as a file to back it up or move it to another device. Import to restore.</p>
-        <div class="export-import-row">
-          <button type="button" class="btn-export" id="btn-export-data">
-            ⬇️ Export data
-          </button>
-          <button type="button" class="btn-import" id="btn-import-trigger">
-            ⬆️ Import data
-          </button>
-        </div>
-        <p class="export-note">Export saves everything: profile, all 75 days, water logs, photos, and reset history.</p>
-        <input type="file" id="import-file-input" accept=".json" class="hidden-input">
-      </div>
-
     </section>
 
-  </div>
-
-  <!-- IMPORT CONFIRM MODAL -->
-  <div class="import-modal-overlay" id="import-modal" role="alertdialog" aria-modal="true">
-    <div class="import-modal-box">
-      <h3>⚠️ Replace your data?</h3>
-      <p>This will overwrite your current profile, all days, and reset history with the imported file.</p>
-      <div class="import-preview" id="import-preview">Checking file…</div>
-      <div class="import-modal-actions">
-        <button type="button" class="btn-danger" id="btn-import-confirm">Yes, replace my data</button>
-        <button type="button" class="btn-secondary" id="btn-import-cancel">Cancel</button>
-      </div>
-    </div>
   </div>
 
   <!-- PHOTO LIGHTBOX -->
@@ -1558,6 +1825,18 @@
       <div class="modal-actions">
         <button type="button" class="btn-danger" id="btn-confirm-reset">Reset to Day 1</button>
         <button type="button" class="btn-secondary" id="btn-dismiss-reset">Not now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE ENTRY CONFIRM MODAL -->
+  <div class="modal-overlay" id="delete-modal" role="alertdialog" aria-modal="true" aria-labelledby="delete-modal-title">
+    <div class="modal-box">
+      <h3 id="delete-modal-title">Delete record?</h3>
+      <p id="delete-modal-msg"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-danger" id="btn-confirm-delete">Delete</button>
+        <button type="button" class="btn-secondary" id="btn-dismiss-delete">Cancel</button>
       </div>
     </div>
   </div>
@@ -1588,6 +1867,128 @@
         <button type="button" class="btn-primary" id="btn-cr-save">Add reminder</button>
         <button type="button" class="btn-secondary" id="btn-cr-cancel">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- COMPLETION CELEBRATION -->
+  <div class="celebration-overlay" id="celebration-overlay" role="dialog" aria-modal="true" aria-label="Challenge complete">
+    <div class="confetti-container" id="confetti-container"></div>
+    <div class="celebration-emoji">🏆</div>
+    <h2 class="celebration-title">You Did It!</h2>
+    <p class="celebration-sub">75 days. Every single one. You completed the 75 Hard Challenge — that's real mental toughness.</p>
+    <button type="button" class="celebration-close" id="btn-celebration-close">Let's go! 💪</button>
+  </div>
+
+  <!-- IDEAS SCREEN -->
+  <section id="s-ideas" class="screen" aria-hidden="true">
+    <div class="top-bar">
+      <button type="button" class="btn-back" id="btn-back-from-ideas">← Calendar</button>
+    </div>
+    <h2 class="page-title">Ideas<span>Food &amp; workout inspiration</span></h2>
+
+    <div class="ideas-tabs">
+      <button type="button" class="ideas-tab active" data-panel="food">🥗 Food</button>
+      <button type="button" class="ideas-tab" data-panel="indoor">🏠 Indoor</button>
+      <button type="button" class="ideas-tab" data-panel="outdoor">🌿 Outdoor</button>
+    </div>
+
+    <!-- Food panel -->
+    <div class="ideas-panel active" id="ideas-panel-food">
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🥑</span><span class="idea-name">Avocado Egg Bowl</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">Halved avocado topped with a fried egg, cherry tomatoes, and a pinch of chili flakes. High protein, healthy fats, zero processed carbs.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🐔</span><span class="idea-name">Grilled Chicken &amp; Greens</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">Marinate chicken breast in lemon, garlic, and herbs. Grill 6 min each side. Serve over spinach and cucumber. Classic clean meal.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🥣</span><span class="idea-name">Overnight Oats</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">Rolled oats + Greek yogurt + almond milk + chia seeds. Refrigerate overnight. Add berries in the morning. Prep once, eat twice.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🥩</span><span class="idea-name">Steak &amp; Sweet Potato</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">Lean sirloin with roasted sweet potato wedges and steamed broccoli. Iron-rich, filling, and fits any diet that allows meat.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🍱</span><span class="idea-name">Meal Prep Bowl</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">Brown rice, roasted chickpeas, cucumber, red onion, feta, and tahini drizzle. Prep 4 at once. Stays fresh 4 days in the fridge.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🥤</span><span class="idea-name">Green Protein Smoothie</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">Spinach, banana, protein powder, almond milk, and a tbsp of peanut butter. Blend 30 seconds. 35g protein, counts toward water goal.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🍳</span><span class="idea-name">Turkey Stir Fry</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">Ground turkey with bell peppers, zucchini, soy sauce (or coconut aminos), and garlic over cauliflower rice. Under 30 minutes.</p>
+      </div>
+    </div>
+
+    <!-- Indoor workout panel -->
+    <div class="ideas-panel" id="ideas-panel-indoor">
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">💪</span><span class="idea-name">AMRAP Bodyweight</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">45 min AMRAP: 10 push-ups, 15 squats, 20 jumping jacks, 10 lunges each leg, 30s plank. Repeat as many rounds as possible. No equipment.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🧘</span><span class="idea-name">Yoga Flow</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">45-min vinyasa flow: sun salutations, warrior sequences, hip openers, and a 5-min savasana. Counts as workout 1 on recovery days.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🪜</span><span class="idea-name">Stair Intervals</span><span class="idea-badge hard">Hard</span></div>
+        <p class="idea-desc">If you have stairs: sprint up, walk down. 30 rounds = approx 45 min. Add a weighted backpack to increase intensity.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🏋️</span><span class="idea-name">Dumbbell Full Body</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">4 rounds: 12 goblet squats, 10 dumbbell rows each arm, 12 shoulder press, 15 Romanian deadlifts, 12 chest press. 90s rest between rounds.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🔥</span><span class="idea-name">HIIT Tabata</span><span class="idea-badge hard">Hard</span></div>
+        <p class="idea-desc">20s on / 10s off x 8 rounds per exercise: burpees, mountain climbers, jump squats, high knees. 4 exercises = 16 min core. Warm up 10 min first.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🤸</span><span class="idea-name">Core &amp; Stretch</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">25 min core work (planks, dead bugs, bicycle crunches, hollow holds) + 20 min full-body stretching. Great as second workout.</p>
+      </div>
+    </div>
+
+    <!-- Outdoor workout panel -->
+    <div class="ideas-panel" id="ideas-panel-outdoor">
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🏃</span><span class="idea-name">45-min Run</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">Easy pace: conversational speed, heart rate 130–150. Counts as your outdoor workout. Go first thing in the morning to lock it in.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🚶</span><span class="idea-name">Power Walk</span><span class="idea-badge easy">Easy</span></div>
+        <p class="idea-desc">Brisk 45-min walk at a pace that elevates heart rate. Arm swing matters. Excellent low-impact outdoor option on rest days from running.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🚴</span><span class="idea-name">Outdoor Cycling</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">45–60 min bike ride with at least 20 min of sustained effort zones. Hill sprints count as intensity. Hydrate before, during, and after.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🏔️</span><span class="idea-name">Hill Sprints</span><span class="idea-badge hard">Hard</span></div>
+        <p class="idea-desc">Find a hill. Sprint up, walk down. 15–20 reps over 45 min. One of the most effective fat-burning, leg-building workouts you can do outside.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">⛹️</span><span class="idea-name">Outdoor Circuit</span><span class="idea-badge medium">Medium</span></div>
+        <p class="idea-desc">Park workout: bench push-ups, step-ups, pull-ups on bars, sprint 50m, bear crawl back. 5 rounds, 45 min. Use what the park gives you.</p>
+      </div>
+      <div class="idea-card">
+        <div class="idea-card-top"><span class="idea-icon">🏊</span><span class="idea-name">Open Water Swim</span><span class="idea-badge hard">Hard</span></div>
+        <p class="idea-desc">45 min of swimming laps or open water. Full-body, low joint impact, and mentally challenging. Pair with a run on strong days.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SHARE CARD OVERLAY -->
+  <div class="share-overlay" id="share-overlay" role="dialog" aria-modal="true" aria-label="Share your progress">
+    <div class="share-card">
+      <canvas id="share-canvas" width="680" height="680"></canvas>
+    </div>
+    <div class="share-actions">
+      <button type="button" class="btn-share-download" id="btn-share-download">Save Image 💾</button>
+      <button type="button" class="btn-share-close" id="btn-share-close">Close</button>
     </div>
   </div>
 
@@ -1636,7 +2037,8 @@
         history: document.getElementById("s-history"),
         archiveDetail: document.getElementById("s-archive-detail"),
         gallery: document.getElementById("s-gallery"),
-        editProfile: document.getElementById("s-edit-profile")
+        editProfile: document.getElementById("s-edit-profile"),
+        ideas: document.getElementById("s-ideas")
       };
 
       const form = document.getElementById("setup-form");
@@ -1758,6 +2160,8 @@
           screens[k].setAttribute("aria-hidden", on ? "false" : "true");
         });
         window.scrollTo(0, 0);
+        // Show crewmates only on onboarding and dashboard
+        crewmateSetActive(name === "onboarding" || name === "dashboard");
       }
 
       function formatShort(d) {
@@ -2479,160 +2883,6 @@
       }
 
       /* ═══════════════════════════════════════════
-         EXPORT / IMPORT
-      ═══════════════════════════════════════════ */
-
-      /**
-       * exportProfileAsJson()
-       * Stringify the full profile and trigger a file download.
-       * Filename: 75hard-backup-YYYY-MM-DD.json
-       */
-      function exportProfileAsJson() {
-        if (!profile) {
-          alert("No data to export yet. Complete onboarding first.");
-          return;
-        }
-        try {
-          var data = JSON.stringify(profile, null, 2);
-          var blob = new Blob([data], { type: "application/json" });
-          var url = URL.createObjectURL(blob);
-          var a = document.createElement("a");
-          a.href = url;
-          a.download = "75hard-backup-" + todayISO() + ".json";
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          logTest("EXPORT_DONE", { size: data.length });
-        } catch (e) {
-          alert("Export failed: " + e.message);
-        }
-      }
-
-      /**
-       * validateImportedProfile(data)
-       * Returns { valid: bool, error: string, summary: string }
-       * Checks the imported object has the minimum required shape.
-       */
-      function validateImportedProfile(data) {
-        if (!data || typeof data !== "object") {
-          return { valid: false, error: "File is not a valid JSON object." };
-        }
-        if (!data.name || typeof data.name !== "string") {
-          return { valid: false, error: "Missing profile name." };
-        }
-        if (!data.setup) {
-          return { valid: false, error: "This backup is from an incomplete profile." };
-        }
-        if (!data.startTimestamp) {
-          return { valid: false, error: "Missing challenge start time." };
-        }
-        // Build a human-readable summary for the confirm modal
-        var days = data.days ? Object.keys(data.days).length : 0;
-        var archive = data.archive ? data.archive.length : 0;
-        var opts = { month: "short", day: "numeric", year: "numeric" };
-        var started = "";
-        try {
-          started = new Date(data.startTimestamp).toLocaleDateString(undefined, opts);
-        } catch (e) { started = data.startTimestamp; }
-        var summary =
-          "<strong>Name:</strong> " + data.name + "<br>" +
-          "<strong>Started:</strong> " + started + "<br>" +
-          "<strong>Days logged:</strong> " + days + "<br>" +
-          "<strong>Past runs:</strong> " + archive + "<br>" +
-          "<strong>Resets:</strong> " + (data.resetCount || 0);
-        return { valid: true, summary: summary };
-      }
-
-      // Holds the parsed import data while user confirms
-      var _pendingImport = null;
-
-      /**
-       * importProfileFromFile(file)
-       * Read the file, validate, show confirm modal.
-       */
-      function importProfileFromFile(file) {
-        if (!file) return;
-        var reader = new FileReader();
-        reader.onload = function (e) {
-          var result;
-          try {
-            result = JSON.parse(e.target.result);
-          } catch (err) {
-            alert("Could not read file. Make sure it is a valid 75 Hard backup (.json).");
-            return;
-          }
-          var check = validateImportedProfile(result);
-          if (!check.valid) {
-            alert("Invalid backup file: " + check.error);
-            return;
-          }
-          // Store pending and show confirm modal
-          _pendingImport = result;
-          document.getElementById("import-preview").innerHTML = check.summary;
-          document.getElementById("import-modal").classList.add("visible");
-        };
-        reader.onerror = function () {
-          alert("Could not read the file.");
-        };
-        reader.readAsText(file);
-      }
-
-      /**
-       * mergeOrReplaceProfile(imported)
-       * Full replace — wipe current data, load imported, migrate, save.
-       */
-      function mergeOrReplaceProfile(imported) {
-        // Run migration to patch any missing fields
-        migrateProfile(imported);
-        profile = imported;
-        pendingFailure = profile.pendingFailure || null;
-        lastUnlockedDay = 0;
-        saveProfile();
-        logTest("IMPORT_DONE", { name: profile.name, days: Object.keys(profile.days).length });
-      }
-
-      // ——— Event listeners ———
-      document.getElementById("btn-export-data").addEventListener("click", exportProfileAsJson);
-
-      document.getElementById("btn-import-trigger").addEventListener("click", function () {
-        document.getElementById("import-file-input").value = "";
-        document.getElementById("import-file-input").click();
-      });
-
-      document.getElementById("import-file-input").addEventListener("change", function () {
-        var file = this.files[0];
-        if (file) importProfileFromFile(file);
-      });
-
-      document.getElementById("btn-import-confirm").addEventListener("click", function () {
-        if (!_pendingImport) return;
-        mergeOrReplaceProfile(_pendingImport);
-        _pendingImport = null;
-        document.getElementById("import-modal").classList.remove("visible");
-        // Cancel any running timers then re-render
-        cancelAllReminders();
-        renderDashboard();
-        showScreen("dashboard");
-        registerServiceWorker().then(function () {
-          if (Notification.permission === "granted") syncRemindersOnProfileLoad();
-        });
-      });
-
-      document.getElementById("btn-import-cancel").addEventListener("click", function () {
-        _pendingImport = null;
-        document.getElementById("import-modal").classList.remove("visible");
-      });
-
-      document.getElementById("import-modal").addEventListener("click", function (e) {
-        if (e.target === this) {
-          _pendingImport = null;
-          this.classList.remove("visible");
-        }
-      });
-
-
-      /* ═══════════════════════════════════════════
          PHOTO GALLERY
       ═══════════════════════════════════════════ */
 
@@ -3276,7 +3526,128 @@
         document.getElementById("progress-text").textContent = doneCount + " / 75 days";
         document.getElementById("progress-fill").style.width = pct + "%";
         logTest("DASHBOARD_RENDER", { unlocked: unlocked, completed: doneCount });
+
+        // Update warning strip and check celebration
+        renderWarnStrip(unlocked, doneCount);
+        renderMascot();
+        if (doneCount === TOTAL_DAYS) showCelebration();
       }
+
+      /* ——— Warning Strip ——— */
+      function renderWarnStrip(unlocked, doneCount) {
+        var strip = document.getElementById("warn-strip");
+        var icon  = document.getElementById("warn-strip-icon");
+        var title = document.getElementById("warn-strip-title");
+        var sub   = document.getElementById("warn-strip-sub");
+
+        // If all done, hide strip
+        if (doneCount === TOTAL_DAYS) {
+          strip.classList.remove("visible", "danger", "caution", "safe");
+          return;
+        }
+
+        var data = getDayData(unlocked);
+        var todayComplete = isDayComplete(data);
+
+        // Count remaining tasks
+        var tasksDone = TASKS.filter(function (t) { return data.tasks[t.id]; }).length;
+        var tasksLeft = TASKS.length - tasksDone;
+        var waterLeft = Math.max(0, WATER_GOAL - data.water);
+        var hasPhoto  = data.photos && data.photos.length > 0;
+
+        // Time remaining in today's window
+        var windowEnd = getDayWindowEndMs(unlocked);
+        var msLeft    = windowEnd - Date.now();
+        var hoursLeft = Math.floor(msLeft / 3600000);
+        var minsLeft  = Math.floor((msLeft % 3600000) / 60000);
+        var timeStr   = hoursLeft > 0
+          ? hoursLeft + "h " + minsLeft + "m left"
+          : minsLeft + "m left";
+
+        if (todayComplete) {
+          strip.className = "warn-strip visible safe";
+          icon.textContent  = "✅";
+          title.textContent = "Day " + unlocked + " complete!";
+          sub.textContent   = "Great work. " + timeStr + " in your window.";
+        } else if (hoursLeft < 2) {
+          strip.className = "warn-strip visible danger";
+          icon.textContent  = "🚨";
+          title.textContent = "Reset risk — " + timeStr;
+          var missing = [];
+          if (tasksLeft > 0) missing.push(tasksLeft + " task" + (tasksLeft > 1 ? "s" : ""));
+          if (waterLeft > 0) missing.push(waterLeft + " glasses");
+          if (!hasPhoto)     missing.push("photo");
+          sub.textContent = "Still need: " + (missing.join(", ") || "save the day") + ".";
+        } else {
+          strip.className = "warn-strip visible caution";
+          icon.textContent  = "⚠️";
+          title.textContent = tasksLeft + " task" + (tasksLeft !== 1 ? "s" : "") + " left today";
+          sub.textContent   = timeStr + " · Tap to open today's log";
+        }
+
+        // Strip taps open today's day
+        strip.onclick = function () { openDay(unlocked); };
+      }
+
+      /* ——— Quick Action Buttons ——— */
+      document.getElementById("qbtn-today").addEventListener("click", function () {
+        openDay(getUnlockedDay());
+      });
+
+      document.getElementById("qbtn-water").addEventListener("click", function () {
+        var unlocked = getUnlockedDay();
+        var data = getDayData(unlocked);
+        data.water = Math.min(data.water + 1, 30);
+        saveProfile();
+        // Brief visual feedback then refresh strip
+        var btn = document.getElementById("qbtn-water");
+        btn.querySelector(".quick-btn-icon").textContent = "✅";
+        setTimeout(function () {
+          btn.querySelector(".quick-btn-icon").textContent = "💧";
+          renderWarnStrip(unlocked, countCompletedDays());
+        }, 800);
+      });
+
+      document.getElementById("qbtn-photo").addEventListener("click", function () {
+        // Open today then trigger photo input
+        var unlocked = getUnlockedDay();
+        openDay(unlocked);
+        setTimeout(function () {
+          var photoInput = document.getElementById("photo-input");
+          if (photoInput) photoInput.click();
+        }, 120);
+      });
+
+      /* ——— Completion Celebration ——— */
+      function spawnConfetti() {
+        var container = document.getElementById("confetti-container");
+        container.innerHTML = "";
+        var colors = ["#2d6a2d","#9fd49f","#ffc94d","#e85d5d","#7cf8f8","#fff","#f5a623"];
+        for (var i = 0; i < 80; i++) {
+          var piece = document.createElement("div");
+          piece.className = "confetti-piece";
+          piece.style.left = Math.random() * 100 + "vw";
+          piece.style.top = "-10px";
+          piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+          piece.style.width  = (6 + Math.random() * 6) + "px";
+          piece.style.height = (6 + Math.random() * 6) + "px";
+          piece.style.animationDuration = (2 + Math.random() * 3) + "s";
+          piece.style.animationDelay    = (Math.random() * 1.5) + "s";
+          container.appendChild(piece);
+        }
+      }
+
+      var celebrationShown = false;
+      function showCelebration() {
+        if (celebrationShown) return;
+        celebrationShown = true;
+        spawnConfetti();
+        document.getElementById("celebration-overlay").classList.add("visible");
+      }
+
+      document.getElementById("btn-celebration-close").addEventListener("click", function () {
+        document.getElementById("celebration-overlay").classList.remove("visible");
+      });
 
       /* ——— Day detail ——— */
       const taskListEl = document.getElementById("task-list");
@@ -3321,6 +3692,8 @@
         dayTimeEl.value = data.time || "";
         dayNotesEl.value = data.notes || "";
         renderPhotos(data);
+        // Show share button only for completed days
+        document.getElementById("btn-share-day").style.display = isDayComplete(data) ? "block" : "none";
         showScreen("day");
       }
 
@@ -3410,6 +3783,7 @@
         }
         saveProfile();
         renderDashboard();
+        document.getElementById("btn-share-day").style.display = data.completed ? "block" : "none";
         showScreen("dashboard");
       });
 
@@ -3468,9 +3842,20 @@
         var entry = archive[viewingArchiveIndex];
         if (!entry) return;
         var fmt = formatArchiveEntry(entry, viewingArchiveIndex);
-        if (confirm("Delete " + fmt.runLabel + "? This cannot be undone.")) {
+        var deleteModal = document.getElementById("delete-modal");
+        document.getElementById("delete-modal-msg").textContent = "Delete " + fmt.runLabel + "? This cannot be undone.";
+        deleteModal.classList.add("visible");
+      });
+
+      document.getElementById("btn-confirm-delete").addEventListener("click", function () {
+        document.getElementById("delete-modal").classList.remove("visible");
+        if (viewingArchiveIndex >= 0) {
           deleteArchiveEntry(viewingArchiveIndex);
         }
+      });
+
+      document.getElementById("btn-dismiss-delete").addEventListener("click", function () {
+        document.getElementById("delete-modal").classList.remove("visible");
       });
 
       document.getElementById("btn-back-from-settings").addEventListener("click", function () {
@@ -3508,7 +3893,7 @@
       }
 
       /* ——— Test helpers (console) ——— */
-      window.Hard75Test = {
+      Object.defineProperty(window, "Hard75Test", { enumerable: false, configurable: false, value: {
         getProfile: function () { return profile; },
         getUnlockedDay: getUnlockedDay,
         getChallengeStartMs: getChallengeStartMs,
@@ -3550,9 +3935,408 @@
           logTest("--- Run Hard75Test.completeDay(1) + setStartHoursAgo(25) for unlock test ---");
           logTest("=== END CHECKLIST ===");
         }
-      };
+      } });
 
       logTest("App ready. Run Hard75Test.runChecklist() in the console.");
+
+      /* ═══════════════════════════════════════════
+         MASCOT MOOD STATES
+      ═══════════════════════════════════════════ */
+      var MASCOT_MOODS = {
+        celebrating: {
+          label: "Crushing It! 🏆",
+          messages: ["You finished 75 Hard. LEGEND.", "75 days. No excuses. You did it."],
+          color: "#ffc94d", eyeColor: "#000", expression: "big-smile"
+        },
+        great: {
+          label: "On Fire 🔥",
+          messages: ["Keep this streak alive!", "You're unstoppable right now.", "This is what discipline looks like."],
+          color: "#2d6a2d", eyeColor: "#7cf8f8", expression: "smile"
+        },
+        good: {
+          label: "Making Progress 💪",
+          messages: ["Solid work. Stay consistent.", "Every day adds up. Keep going.", "You're building something real."],
+          color: "#358535", eyeColor: "#7cf8f8", expression: "neutral"
+        },
+        warning: {
+          label: "Don't Slip ⚠️",
+          messages: ["Still time — get it done today.", "You didn't come this far to quit.", "Finish the day. No regrets."],
+          color: "#b07d00", eyeColor: "#fff", expression: "worried"
+        },
+        danger: {
+          label: "Reset Risk 🚨",
+          messages: ["Less than 2 hours. Move NOW.", "Everything or nothing. Choose.", "You will regret stopping. Go."],
+          color: "#c51111", eyeColor: "#fff", expression: "scared"
+        },
+        fresh: {
+          label: "Day 1 Energy ⚡",
+          messages: ["75 days starts right now.", "Commit. No turning back.", "The hardest part is starting. You did."],
+          color: "#132ed2", eyeColor: "#7cf8f8", expression: "smile"
+        }
+      };
+
+      function getMascotMoodKey(unlocked, doneCount, data, hoursLeft) {
+        if (doneCount === 75) return "celebrating";
+        if (unlocked <= 2 && doneCount === 0) return "fresh";
+        var todayDone = isDayComplete(data);
+        if (todayDone) return doneCount >= 50 ? "celebrating" : "great";
+        if (hoursLeft < 2) return "danger";
+        if (hoursLeft < 6) return "warning";
+        return doneCount >= 30 ? "great" : "good";
+      }
+
+      function drawMascotSVG(color, eyeColor, expression) {
+        var mouth = "";
+        if (expression === "big-smile") mouth = '<path d="M30 68 Q50 82 70 68" stroke="' + eyeColor + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+        else if (expression === "smile") mouth = '<path d="M34 68 Q50 76 66 68" stroke="' + eyeColor + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+        else if (expression === "neutral") mouth = '<line x1="36" y1="70" x2="64" y2="70" stroke="' + eyeColor + '" stroke-width="2.5" stroke-linecap="round"/>';
+        else if (expression === "worried") mouth = '<path d="M34 72 Q50 65 66 72" stroke="' + eyeColor + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+        else if (expression === "scared") mouth = '<ellipse cx="50" cy="70" rx="10" ry="6" fill="' + eyeColor + '" opacity="0.7"/>';
+        return [
+          '<svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">',
+          '<ellipse cx="50" cy="85" rx="38" ry="40" fill="' + color + '"/>',
+          '<ellipse cx="50" cy="42" rx="32" ry="30" fill="' + color + '"/>',
+          '<ellipse cx="50" cy="37" rx="22" ry="18" fill="' + eyeColor + '" opacity="0.9"/>',
+          '<ellipse cx="43" cy="37" rx="5" ry="6" fill="#111"/>',
+          '<ellipse cx="57" cy="37" rx="5" ry="6" fill="#111"/>',
+          mouth,
+          '<rect x="78" y="68" width="18" height="26" rx="6" fill="' + color + '"/>',
+          '<rect x="26" y="116" width="18" height="14" rx="6" fill="' + color + '"/>',
+          '<rect x="56" y="116" width="18" height="14" rx="6" fill="' + color + '"/>',
+          '</svg>'
+        ].join('');
+      }
+
+      function renderMascot() {
+        var unlocked = getUnlockedDay();
+        var doneCount = countCompletedDays();
+        var data = getDayData(unlocked);
+        var msLeft = getDayWindowEndMs(unlocked) - Date.now();
+        var hoursLeft = Math.max(0, Math.floor(msLeft / 3600000));
+        var key = getMascotMoodKey(unlocked, doneCount, data, hoursLeft);
+        var mood = MASCOT_MOODS[key];
+        var msg = mood.messages[Math.floor(Date.now() / 60000) % mood.messages.length];
+        document.getElementById("mascot-figure").innerHTML = drawMascotSVG(mood.color, mood.eyeColor, mood.expression);
+        document.getElementById("mascot-mood").textContent = mood.label;
+        document.getElementById("mascot-msg").textContent = msg;
+        document.getElementById("mascot-msg").style.color = mood.color === "#ffc94d" ? "#ffc94d" : "var(--text)";
+      }
+
+      /* ═══════════════════════════════════════════
+         IDEAS SCREEN
+      ═══════════════════════════════════════════ */
+      function openIdeas() {
+        showScreen("ideas");
+      }
+
+      document.getElementById("btn-open-ideas").addEventListener("click", openIdeas);
+      document.getElementById("btn-back-from-ideas").addEventListener("click", function () {
+        renderDashboard();
+        showScreen("dashboard");
+      });
+
+      // Tab switching
+      document.querySelectorAll(".ideas-tab").forEach(function (tab) {
+        tab.addEventListener("click", function () {
+          document.querySelectorAll(".ideas-tab").forEach(function (t) { t.classList.remove("active"); });
+          document.querySelectorAll(".ideas-panel").forEach(function (p) { p.classList.remove("active"); });
+          tab.classList.add("active");
+          document.getElementById("ideas-panel-" + tab.dataset.panel).classList.add("active");
+        });
+      });
+
+      /* ═══════════════════════════════════════════
+         SHARE CARD
+      ═══════════════════════════════════════════ */
+      var shareDay = 1;
+
+      function buildShareCard(dayNum) {
+        var canvas = document.getElementById("share-canvas");
+        var ctx = canvas.getContext("2d");
+        var W = 680, H = 680;
+        canvas.width = W; canvas.height = H;
+
+        // Background
+        ctx.fillStyle = "#0a0a0a";
+        ctx.fillRect(0, 0, W, H);
+
+        // Green border glow
+        ctx.strokeStyle = "#2d6a2d";
+        ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, W - 6, H - 6);
+
+        // App name
+        ctx.fillStyle = "#9fd49f";
+        ctx.font = "bold 32px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("75 HARD", W / 2, 72);
+
+        // Big day number
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "bold 160px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(dayNum, W / 2, 260);
+
+        // "of 75" label
+        ctx.fillStyle = "rgba(255,255,255,0.4)";
+        ctx.font = "36px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText("of 75 days", W / 2, 316);
+
+        // Progress bar
+        var barX = 80, barY = 355, barW = W - 160, barH = 18;
+        var doneCount = countCompletedDays();
+        var pct = doneCount / 75;
+        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.beginPath(); ctx.roundRect(barX, barY, barW, barH, 9); ctx.fill();
+        ctx.fillStyle = "#2d6a2d";
+        ctx.beginPath(); ctx.roundRect(barX, barY, barW * pct, barH, 9); ctx.fill();
+
+        // Progress label
+        ctx.fillStyle = "#9fd49f";
+        ctx.font = "bold 28px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(doneCount + " days complete · " + Math.round(pct * 100) + "%", W / 2, 420);
+
+        // Data for this day
+        var data = getDayData(dayNum);
+        var tasksDone = TASKS.filter(function (t) { return data.tasks[t.id]; }).length;
+        var water = data.water || 0;
+
+        // Stats row
+        var stats = [
+          { icon: "✅", val: tasksDone + "/6", label: "Tasks" },
+          { icon: "💧", val: water + " glasses", label: "Water" },
+          { icon: "📸", val: (data.photos ? data.photos.length : 0) + " photo" + (data.photos && data.photos.length !== 1 ? "s" : ""), label: "Proof" }
+        ];
+        stats.forEach(function (s, i) {
+          var sx = 113 + i * 152;
+          var sy = 470;
+          ctx.fillStyle = "rgba(255,255,255,0.06)";
+          ctx.beginPath(); ctx.roundRect(sx - 60, sy - 38, 130, 90, 12); ctx.fill();
+          ctx.font = "28px sans-serif";
+          ctx.fillStyle = "#fff";
+          ctx.fillText(s.icon, sx, sy);
+          ctx.font = "bold 22px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(s.val, sx, sy + 34);
+          ctx.font = "18px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.fillStyle = "rgba(255,255,255,0.4)";
+          ctx.fillText(s.label, sx, sy + 58);
+        });
+
+        // Name + date footer
+        var name = (profile && profile.name) ? profile.name : "";
+        ctx.fillStyle = "rgba(255,255,255,0.25)";
+        ctx.font = "22px -apple-system, BlinkMacSystemFont, sans-serif";
+        ctx.fillText(name + (name ? " · " : "") + new Date().toLocaleDateString(), W / 2, 612);
+
+        // Completed badge
+        if (isDayComplete(getDayData(dayNum))) {
+          ctx.fillStyle = "rgba(45,106,45,0.3)";
+          ctx.beginPath(); ctx.roundRect(W/2 - 90, 635, 180, 36, 18); ctx.fill();
+          ctx.fillStyle = "#9fd49f";
+          ctx.font = "bold 20px -apple-system, BlinkMacSystemFont, sans-serif";
+          ctx.fillText("✅ DAY COMPLETE", W / 2, 659);
+        }
+      }
+
+      function openShareCard(dayNum) {
+        shareDay = dayNum;
+        buildShareCard(dayNum);
+        document.getElementById("share-overlay").classList.add("visible");
+      }
+
+      document.getElementById("btn-share-download").addEventListener("click", function () {
+        var canvas = document.getElementById("share-canvas");
+        var a = document.createElement("a");
+        a.download = "75hard-day-" + shareDay + ".png";
+        a.href = canvas.toDataURL("image/png");
+        a.click();
+      });
+
+      document.getElementById("btn-share-close").addEventListener("click", function () {
+        document.getElementById("share-overlay").classList.remove("visible");
+      });
+
+      document.getElementById("btn-share-day").addEventListener("click", function () {
+        openShareCard(currentDay);
+      });
+
+      /* ═══════════════════════════════════════════
+         AMONG US CREWMATE ENGINE
+         Crewmates wander on onboarding + dashboard.
+         They pause, walk, turn, and avoid each other.
+      ═══════════════════════════════════════════ */
+      (function () {
+        var layer = document.getElementById("crewmate-layer");
+        var COUNT = 5;
+        var SPEED = 0.6;          // px per frame
+        var PAUSE_MIN = 1200;     // ms
+        var PAUSE_MAX = 3500;
+        var CREWMATE_W = 36;
+        var crewmates = [];
+        var rafId = null;
+        var active = false;
+
+        // Colors: red, blue, green, yellow, purple, cyan, orange, pink
+        var COLORS = [
+          { body: "#c51111", visor: "#7cf8f8" },
+          { body: "#132ed2", visor: "#7cf8f8" },
+          { body: "#11802d", visor: "#7cf8f8" },
+          { body: "#f5f557", visor: "#7cf8f8" },
+          { body: "#6b31bc", visor: "#7cf8f8" },
+          { body: "#ed54ba", visor: "#7cf8f8" },
+          { body: "#ef7d0e", visor: "#7cf8f8" },
+          { body: "#50eff7", visor: "#b3f2f7" }
+        ];
+
+        function makeSVG(color) {
+          // Simple crewmate silhouette in SVG
+          return [
+            '<svg viewBox="0 0 100 130" xmlns="http://www.w3.org/2000/svg">',
+            // body
+            '<ellipse cx="50" cy="80" rx="38" ry="45" fill="' + color.body + '"/>',
+            // head
+            '<ellipse cx="50" cy="38" rx="32" ry="30" fill="' + color.body + '"/>',
+            // visor
+            '<ellipse cx="50" cy="33" rx="22" ry="18" fill="' + color.visor + '" opacity="0.9"/>',
+            // backpack
+            '<rect x="78" y="62" width="18" height="28" rx="6" fill="' + color.body + '"/>',
+            // left leg
+            '<rect x="26" y="112" width="18" height="18" rx="7" fill="' + color.body + '"/>',
+            // right leg
+            '<rect x="56" y="112" width="18" height="18" rx="7" fill="' + color.body + '"/>',
+            '</svg>'
+          ].join('');
+        }
+
+        function randomBetween(a, b) { return a + Math.random() * (b - a); }
+
+        function pickTarget(cm) {
+          var vw = Math.min(window.innerWidth, 400);
+          var vh = window.innerHeight;
+          var margin = CREWMATE_W + 10;
+          var tx = randomBetween(margin, vw - margin);
+          var ty = randomBetween(margin, vh - margin);
+          cm.tx = tx;
+          cm.ty = ty;
+          cm.dx = tx - cm.x;
+          cm.dy = ty - cm.y;
+          var dist = Math.sqrt(cm.dx * cm.dx + cm.dy * cm.dy);
+          if (dist < 1) dist = 1;
+          cm.nx = cm.dx / dist;
+          cm.ny = cm.dy / dist;
+          cm.distLeft = dist;
+        }
+
+        function startPause(cm) {
+          cm.pausing = true;
+          cm.pauseUntil = Date.now() + randomBetween(PAUSE_MIN, PAUSE_MAX);
+        }
+
+        function createCrewmate(index) {
+          var vw = Math.min(window.innerWidth, 400);
+          var vh = window.innerHeight;
+          var color = COLORS[index % COLORS.length];
+          var el = document.createElement("div");
+          el.className = "crewmate";
+          el.innerHTML = makeSVG(color);
+          layer.appendChild(el);
+
+          var cm = {
+            el: el,
+            x: randomBetween(20, vw - 56),
+            y: randomBetween(20, vh - 56),
+            tx: 0, ty: 0,
+            nx: 0, ny: 0,
+            distLeft: 0,
+            pausing: false,
+            pauseUntil: 0,
+            facingLeft: false
+          };
+          el.style.left = cm.x + "px";
+          el.style.top = cm.y + "px";
+          startPause(cm);
+          return cm;
+        }
+
+        function tick() {
+          if (!active) return;
+          var now = Date.now();
+
+          crewmates.forEach(function (cm) {
+            if (cm.pausing) {
+              if (now >= cm.pauseUntil) {
+                cm.pausing = false;
+                pickTarget(cm);
+              }
+              return;
+            }
+
+            // Move toward target
+            var step = SPEED;
+            if (cm.distLeft <= step) {
+              cm.x = cm.tx;
+              cm.y = cm.ty;
+              startPause(cm);
+            } else {
+              cm.x += cm.nx * step;
+              cm.y += cm.ny * step;
+              cm.distLeft -= step;
+
+              // Clamp to visible area
+              var vw = Math.min(window.innerWidth, 400);
+              var vh = window.innerHeight;
+              cm.x = Math.max(0, Math.min(vw - CREWMATE_W, cm.x));
+              cm.y = Math.max(0, Math.min(vh - CREWMATE_W, cm.y));
+
+              // Face direction of travel
+              var newFacing = cm.nx < 0;
+              if (newFacing !== cm.facingLeft) {
+                cm.facingLeft = newFacing;
+                cm.el.classList.toggle("flipped", newFacing);
+              }
+            }
+
+            cm.el.style.left = cm.x + "px";
+            cm.el.style.top = cm.y + "px";
+          });
+
+          rafId = requestAnimationFrame(tick);
+        }
+
+        function crewmateSetActive(on) {
+          if (on === active) return;
+          active = on;
+          if (on) {
+            layer.classList.remove("hidden");
+            // Respread positions when re-entering
+            crewmates.forEach(function (cm) {
+              var vw = Math.min(window.innerWidth, 400);
+              var vh = window.innerHeight;
+              cm.x = randomBetween(20, vw - 56);
+              cm.y = randomBetween(20, vh - 56);
+              cm.el.style.left = cm.x + "px";
+              cm.el.style.top = cm.y + "px";
+              startPause(cm);
+            });
+            rafId = requestAnimationFrame(tick);
+          } else {
+            layer.classList.add("hidden");
+            if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+          }
+        }
+
+        // Expose toggle to outer scope for showScreen
+        window.crewmateSetActive = crewmateSetActive;
+
+        // Init crewmates
+        for (var i = 0; i < COUNT; i++) {
+          crewmates.push(createCrewmate(i));
+        }
+
+        // Start on onboarding (active by default at launch)
+        crewmateSetActive(true);
+      })();
+
 
       /* ——— Init ——— */
       profile = loadProfile();
