@@ -2666,5 +2666,30 @@
     log("App ready. Hard75Test available in console.");
   })();
   </script>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyDJFTE0LmVR6670fi_zpVJ0hj9NTMm1yew",
+    authDomain: "hardday-6a097.firebaseapp.com",
+    projectId: "hardday-6a097",
+    storageBucket: "hardday-6a097.firebasestorage.app",
+    messagingSenderId: "981904644987",
+    appId: "1:981904644987:web:2720ee8cd5d87c1f1cbbde",
+    measurementId: "G-QWB91KK7JR"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+</script>
+  
 </body>
 </html>
