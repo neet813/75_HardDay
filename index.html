@@ -2757,21 +2757,25 @@
           screens[k].setAttribute("aria-hidden", on ? "false" : "true");
         });
         window.scrollTo(0, 0);
-        // Show crewmates only on onboarding and dashboard
-        crewmateSetActive(name === "onboarding" || name === "dashboard");
-        // Bottom nav: show on main screens; hide elsewhere
-        var navScreens = {
-          dashboard: "home",
-          analytics: "history",
-          gallery: "gallery",
-          ideas: "ideas",
-          settings: "settings",
-          editProfile: "profile"
-        };
-        if (navScreens[name]) {
-          showBottomNav(navScreens[name]);
-        } else {
-          hideBottomNav();
+        // Guard: crewmateSetActive defined later in file
+        if (typeof crewmateSetActive === "function") {
+          crewmateSetActive(name === "onboarding" || name === "dashboard");
+        }
+        // Guard: showBottomNav defined later in file
+        if (typeof showBottomNav === "function" && typeof hideBottomNav === "function") {
+          var navScreens = {
+            dashboard: "home",
+            analytics: "history",
+            gallery: "gallery",
+            ideas: "ideas",
+            settings: "settings",
+            editProfile: "profile"
+          };
+          if (navScreens[name]) {
+            showBottomNav(navScreens[name]);
+          } else {
+            hideBottomNav();
+          }
         }
       }
 
@@ -4162,9 +4166,6 @@
           grid.appendChild(btn);
         }
 
-        const pct = Math.round((doneCount / TOTAL_DAYS) * 100);
-        document.getElementById("progress-text").textContent = doneCount + " / 75 days";
-        document.getElementById("progress-fill").style.width = pct + "%";
         logTest("DASHBOARD_RENDER", { unlocked: unlocked, completed: doneCount });
 
         // Update warning strip and check celebration
