@@ -1884,6 +1884,7 @@
       pointer-events: none;
       z-index: 5;
       overflow: hidden;
+      display: none !important;
     }
 
     #crewmate-layer.hidden { display: none; }
@@ -2604,8 +2605,6 @@
       const LOG_PREFIX = "[75Hard]";
 
       function logTest() {
-        const args = Array.prototype.slice.call(arguments);
-        console.log.apply(console, [LOG_PREFIX].concat(args));
       }
 
       const TASKS = [
@@ -2673,9 +2672,6 @@
 
       // Called by the import/restore feature when it lands
       function fireRestoredBackup() {
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "restored_backup");
-        }
       }
 
       function migrateProfile(p) {
@@ -2757,25 +2753,23 @@
           screens[k].setAttribute("aria-hidden", on ? "false" : "true");
         });
         window.scrollTo(0, 0);
-        // Guard: crewmateSetActive defined later in file
-        if (typeof crewmateSetActive === "function") {
-          crewmateSetActive(name === "onboarding" || name === "dashboard");
+        // Show crewmates only on onboarding and dashboard
+        if (window.crewmateSetActive) {
+          window.crewmateSetActive(name === "onboarding" || name === "dashboard");
         }
-        // Guard: showBottomNav defined later in file
-        if (typeof showBottomNav === "function" && typeof hideBottomNav === "function") {
-          var navScreens = {
-            dashboard: "home",
-            analytics: "history",
-            gallery: "gallery",
-            ideas: "ideas",
-            settings: "settings",
-            editProfile: "profile"
-          };
-          if (navScreens[name]) {
-            showBottomNav(navScreens[name]);
-          } else {
-            hideBottomNav();
-          }
+        // Bottom nav: show on main screens; hide elsewhere
+        var navScreens = {
+          dashboard: "home",
+          analytics: "history",
+          gallery: "gallery",
+          ideas: "ideas",
+          settings: "settings",
+          editProfile: "profile"
+        };
+        if (navScreens[name]) {
+          showBottomNav(navScreens[name]);
+        } else {
+          hideBottomNav();
         }
       }
 
@@ -2862,9 +2856,6 @@
         profile.pendingFailure = pendingFailure;
         saveProfile();
         logTest("FAILURE_QUEUED", { failedDay: failedDay, reason: reason });
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "missed_day");
-        }
         showFailureModal();
       }
 
@@ -2924,9 +2915,6 @@
           newStart: profile.startTimestamp,
           resetCount: profile.resetCount
         });
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "reset_challenge");
-        }
         if (screens.day.classList.contains("active")) {
           showScreen("dashboard");
         }
@@ -2994,13 +2982,6 @@
         if (result === "granted") {
           await registerServiceWorker();
           syncRemindersOnProfileLoad();
-          if (window.logEvent && window.analytics) {
-            window.logEvent(window.analytics, "enabled_notifications");
-          }
-        } else if (result === "denied") {
-          if (window.logEvent && window.analytics) {
-            window.logEvent(window.analytics, "disabled_notifications");
-          }
         }
         return result;
       }
@@ -3208,6 +3189,7 @@
 
       function checkRemindersDue() {
         if (!profile || !profile.setup) return;
+        if (!("Notification" in window)) return;
         if (Notification.permission !== "granted") return;
         const settings = getReminderSettings();
         if (!settings.enabled) return;
@@ -3230,6 +3212,10 @@
       async function scheduleDailyReminders() {
         cancelAllReminders();
         if (!profile || !profile.setup) return;
+        if (!("Notification" in window)) {
+          logTest("REMINDERS_SKIP", { enabled: false, permission: "unsupported" });
+          return;
+        }
 
         const settings = getReminderSettings();
         if (!settings.enabled || Notification.permission !== "granted") {
@@ -3316,9 +3302,6 @@
         setTimeout(showIosPrompt, 400);
         updateIosSettingsNote();
         fillReminderSettingsForm();
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "opened_settings");
-        }
         showScreen("settings");
       }
 
@@ -3491,9 +3474,6 @@
         }
 
         contentEl.innerHTML = html;
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "opened_archive_detail");
-        }
         showScreen("archiveDetail");
       }
 
@@ -3513,9 +3493,6 @@
 
       function openHistory() {
         renderResetHistory();
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "opened_progress");
-        }
         showScreen("history");
       }
 
@@ -3752,9 +3729,6 @@
         galleryActiveRun = "all";
         renderGalleryFilters(galleryPhotos);
         renderPhotoGallery();
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "viewed_stats");
-        }
         showScreen("gallery");
       }
 
@@ -4105,21 +4079,26 @@
 
       function finishOnboarding() {
         if (!validateOnboard()) return false;
-        profile = buildProfileFromForm();
-        pendingFailure = null;
-        saveProfile();
-        logTest("CHALLENGE_STARTED", { startTimestamp: profile.startTimestamp });
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "finished_onboarding");
-          window.logEvent(window.analytics, "started_challenge");
+        try {
+          profile = buildProfileFromForm();
+          pendingFailure = null;
+          saveProfile();
+          logTest("CHALLENGE_STARTED", { startTimestamp: profile.startTimestamp });
+          showScreen("dashboard");
+          renderDashboard();
+          startRealtimeLoop();
+          registerServiceWorker().then(function () {
+            if ("Notification" in window && Notification.permission === "granted") syncRemindersOnProfileLoad();
+          });
+          return true;
+        } catch (e) {
+          var formError = document.getElementById("form-error");
+          if (formError) {
+            formError.textContent = "Something went wrong starting the challenge. Please reload and try again.";
+            formError.classList.add("visible");
+          }
+          return false;
         }
-        renderDashboard();
-        showScreen("dashboard");
-        startRealtimeLoop();
-        registerServiceWorker().then(function () {
-          if (Notification.permission === "granted") syncRemindersOnProfileLoad();
-        });
-        return true;
       }
 
       form.addEventListener("submit", function (e) {
@@ -4166,15 +4145,24 @@
           grid.appendChild(btn);
         }
 
+        const pct = Math.round((doneCount / TOTAL_DAYS) * 100);
+        var progressText = document.getElementById("progress-text");
+        var progressFill = document.getElementById("progress-fill");
+        if (progressText) progressText.textContent = doneCount + " / 75 days";
+        if (progressFill) progressFill.style.width = pct + "%";
         logTest("DASHBOARD_RENDER", { unlocked: unlocked, completed: doneCount });
 
-        // Update warning strip and check celebration
-        renderWarnStrip(unlocked, doneCount);
-        renderMascot();
-        renderQuote();
-        renderTodayHero(unlocked, doneCount);
-        renderStatsRow(doneCount);
-        renderRing(doneCount);
+        // Update dashboard widgets. Keep the calendar usable even if one widget fails.
+        [
+          function () { renderWarnStrip(unlocked, doneCount); },
+          function () { renderMascot(); },
+          function () { renderQuote(); },
+          function () { renderTodayHero(unlocked, doneCount); },
+          function () { renderStatsRow(doneCount); },
+          function () { renderRing(doneCount); }
+        ].forEach(function (renderPart) {
+          try { renderPart(); } catch (e) {}
+        });
         if (doneCount === TOTAL_DAYS) showCelebration();
       }
 
@@ -4235,33 +4223,43 @@
       }
 
       /* ——— Quick Action Buttons ——— */
-      document.getElementById("qbtn-today").addEventListener("click", function () {
-        openDay(getUnlockedDay());
-      });
+      var qbtnToday = document.getElementById("qbtn-today");
+      if (qbtnToday) {
+        qbtnToday.addEventListener("click", function () {
+          openDay(getUnlockedDay());
+        });
+      }
 
-      document.getElementById("qbtn-water").addEventListener("click", function () {
-        var unlocked = getUnlockedDay();
-        var data = getDayData(unlocked);
-        data.water = Math.min(data.water + 1, 30);
-        saveProfile();
-        // Brief visual feedback then refresh strip
-        var btn = document.getElementById("qbtn-water");
-        btn.querySelector(".quick-btn-icon").textContent = "✅";
-        setTimeout(function () {
-          btn.querySelector(".quick-btn-icon").textContent = "💧";
-          renderWarnStrip(unlocked, countCompletedDays());
-        }, 800);
-      });
+      var qbtnWater = document.getElementById("qbtn-water");
+      if (qbtnWater) {
+        qbtnWater.addEventListener("click", function () {
+          var unlocked = getUnlockedDay();
+          var data = getDayData(unlocked);
+          data.water = Math.min(data.water + 1, 30);
+          saveProfile();
+          // Brief visual feedback then refresh strip
+          var btn = document.getElementById("qbtn-water");
+          var icon = btn ? btn.querySelector(".quick-btn-icon") : null;
+          if (icon) icon.textContent = "✅";
+          setTimeout(function () {
+            if (icon) icon.textContent = "💧";
+            renderWarnStrip(unlocked, countCompletedDays());
+          }, 800);
+        });
+      }
 
-      document.getElementById("qbtn-photo").addEventListener("click", function () {
-        // Open today then trigger photo input
-        var unlocked = getUnlockedDay();
-        openDay(unlocked);
-        setTimeout(function () {
-          var photoInput = document.getElementById("photo-input");
-          if (photoInput) photoInput.click();
-        }, 120);
-      });
+      var qbtnPhoto = document.getElementById("qbtn-photo");
+      if (qbtnPhoto) {
+        qbtnPhoto.addEventListener("click", function () {
+          // Open today then trigger photo input
+          var unlocked = getUnlockedDay();
+          openDay(unlocked);
+          setTimeout(function () {
+            var photoInput = document.getElementById("photo-input");
+            if (photoInput) photoInput.click();
+          }, 120);
+        });
+      }
 
       /* ——— Completion Celebration ——— */
       function spawnConfetti() {
@@ -4370,9 +4368,6 @@
             var noteWrap = li.querySelector(".task-note-wrap");
             if (noteWrap) noteWrap.classList.toggle("visible", data.tasks[task.id]);
             saveProfile();
-            if (data.tasks[task.id] && window.logEvent && window.analytics) {
-              window.logEvent(window.analytics, "completed_task");
-            }
           });
           taskListEl.appendChild(li);
         });
@@ -4469,9 +4464,6 @@
           logTest("SAVE_INCOMPLETE", { day: currentDay, water: data.water, tasks: data.tasks });
         } else {
           logTest("DAY_SAVED_COMPLETE", { day: currentDay });
-          if (window.logEvent && window.analytics) {
-            window.logEvent(window.analytics, "completed_day");
-          }
         }
         saveProfile();
         renderDashboard();
@@ -4567,7 +4559,7 @@
       document.getElementById("btn-save-reminders").addEventListener("click", async function () {
         const s = readReminderSettingsFromForm();
         saveReminderSettings(s);
-        if (s.enabled && Notification.permission !== "granted") {
+        if (s.enabled && (!("Notification" in window) || Notification.permission !== "granted")) {
           const perm = await requestNotificationPermission();
           if (perm !== "granted") {
             logTest("REMINDERS_NEED_PERMISSION");
@@ -4669,9 +4661,6 @@
       function openAnalytics() {
         renderAnalytics();
         showScreen("analytics");
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "viewed_stats");
-        }
       }
 
       function renderAnalytics() {
@@ -4770,6 +4759,8 @@
       document.getElementById("nav-history").addEventListener("click", function () {
         openAnalytics(); showBottomNav("history");
       });
+      /* ═══════════════════════════════════════════
+         QUOTES
       ═══════════════════════════════════════════ */
       var QUOTES = [
         { text: "We are what we repeatedly do. Excellence is not an act but a habit.", author: "Aristotle" },
@@ -4871,18 +4862,30 @@
       });
 
       // Keep old btn-open-gallery/history wired (now just route through nav)
-      document.getElementById("btn-open-gallery").addEventListener("click", function () {
-        openGallery(); showBottomNav("gallery");
-      });
-      document.getElementById("btn-open-history").addEventListener("click", function () {
-        openHistory(); showBottomNav("history");
-      });
-      document.getElementById("btn-open-ideas").addEventListener("click", function () {
-        openIdeas(); showBottomNav("ideas");
-      });
-      document.getElementById("btn-open-history-inline") && document.getElementById("btn-open-history-inline").addEventListener("click", function () {
-        openHistory(); showBottomNav("history");
-      });
+      var btnOpenGallery = document.getElementById("btn-open-gallery");
+      if (btnOpenGallery) {
+        btnOpenGallery.addEventListener("click", function () {
+          openGallery(); showBottomNav("gallery");
+        });
+      }
+      var btnOpenHistory = document.getElementById("btn-open-history");
+      if (btnOpenHistory) {
+        btnOpenHistory.addEventListener("click", function () {
+          openHistory(); showBottomNav("history");
+        });
+      }
+      var btnOpenIdeas = document.getElementById("btn-open-ideas");
+      if (btnOpenIdeas) {
+        btnOpenIdeas.addEventListener("click", function () {
+          openIdeas(); showBottomNav("ideas");
+        });
+      }
+      var btnOpenHistoryInline = document.getElementById("btn-open-history-inline");
+      if (btnOpenHistoryInline) {
+        btnOpenHistoryInline.addEventListener("click", function () {
+          openHistory(); showBottomNav("history");
+        });
+      }
 
       /* water counter bump animation */
       (function () {
@@ -4900,6 +4903,8 @@
         plusBtn.addEventListener("click", function () { setTimeout(bumpWater, 0); });
         minusBtn.addEventListener("click", function () { setTimeout(bumpWater, 0); });
       })();
+      /* ═══════════════════════════════════════════
+         MASCOT
       ═══════════════════════════════════════════ */
       var MASCOT_MOODS = {
         celebrating: {
@@ -4988,7 +4993,7 @@
         showScreen("ideas");
       }
 
-      document.getElementById("btn-open-ideas").addEventListener("click", openIdeas);
+      if (btnOpenIdeas) btnOpenIdeas.addEventListener("click", openIdeas);
       document.getElementById("btn-back-from-ideas").addEventListener("click", function () {
         renderDashboard();
         showScreen("dashboard");
@@ -5109,9 +5114,6 @@
         a.download = "75hard-day-" + shareDay + ".png";
         a.href = canvas.toDataURL("image/png");
         a.click();
-        if (window.logEvent && window.analytics) {
-          window.logEvent(window.analytics, "exported_data");
-        }
       });
 
       document.getElementById("btn-share-close").addEventListener("click", function () {
@@ -5129,7 +5131,7 @@
       ═══════════════════════════════════════════ */
       (function () {
         var layer = document.getElementById("crewmate-layer");
-        var COUNT = 5;
+        var COUNT = 0;
         var SPEED = 0.6;          // px per frame
         var PAUSE_MIN = 1200;     // ms
         var PAUSE_MAX = 3500;
@@ -5266,6 +5268,10 @@
         }
 
         function crewmateSetActive(on) {
+          if (layer) layer.classList.add("hidden");
+          active = false;
+          if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+          return;
           if (on === active) return;
           active = on;
           if (on) {
@@ -5310,7 +5316,7 @@
         showScreen("dashboard");
         startRealtimeLoop();
         registerServiceWorker().then(function () {
-          if (Notification.permission === "granted") syncRemindersOnProfileLoad();
+          if ("Notification" in window && Notification.permission === "granted") syncRemindersOnProfileLoad();
         });
         setTimeout(showIosPrompt, 2000);
         if (!auditPastDays()) {
