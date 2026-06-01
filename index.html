@@ -1,2035 +1,754 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<meta name="theme-color" content="#0b0f14" />
-<meta name="description" content="75 Hard Day — strict discipline tracker with 24h day windows, water, photos, and automatic reset." />
-<link rel="manifest" href="manifest.json" />
-<link rel="icon" type="image/png" href="icon-192.png" />
-<link rel="apple-touch-icon" href="icon-192.png" />
-<title>75 Hard Day</title>
-<style>
-/* ===========================================================
-   1. DESIGN TOKENS — dark slate theme
-   =========================================================== */
-:root{
-  --bg:#0b0f14;
-  --bg-2:#11161d;
-  --surface:#161c25;
-  --surface-2:#1d242f;
-  --border:rgba(255,255,255,.08);
-  --border-strong:rgba(255,255,255,.18);
-  --text:#eef2f7;
-  --muted:#8a94a3;
-  --muted-2:#5e6773;
-  --accent:#3ddc84;
-  --accent-2:#26b86a;
-  --accent-soft:rgba(61,220,132,.14);
-  --danger:#ef4d4d;
-  --danger-soft:rgba(239,77,77,.14);
-  --warn:#f5a623;
-  --info:#5aa9ff;
-  --radius:14px;
-  --radius-sm:10px;
-  --radius-lg:20px;
-  --shadow:0 8px 28px rgba(0,0,0,.4);
-  --tap:48px;
-  --pad:1.1rem;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html{font-size:16px;-webkit-text-size-adjust:100%}
-body{
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
-  background:var(--bg);color:var(--text);line-height:1.5;
-  min-height:100dvh;overflow-x:hidden;-webkit-font-smoothing:antialiased;
-}
-button,input,textarea,select{font:inherit;color:inherit}
-button{cursor:pointer;background:none;border:0}
-a{color:var(--accent);text-decoration:none}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>75 Hard Day Challenge - Plant Growth Worlds</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-/* ===========================================================
-   2. LAYOUT SHELL
-   =========================================================== */
-.app{
-  max-width:480px;margin:0 auto;min-height:100dvh;position:relative;
-  padding-bottom:calc(72px + env(safe-area-inset-bottom));
-}
-.screen{display:none;flex-direction:column;padding:var(--pad);gap:1rem;animation:fade .25s ease}
-.screen.active{display:flex}
-@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+        :root {
+            --ocean-light: #A8D5F7;
+            --ocean-mid: #5DA3D5;
+            --ocean-dark: #2E5A8C;
+            --ocean-very-dark: #1A3A5C;
+            --land-light: #F4C4D4;
+            --land-mid: #E89BAD;
+            --land-dark: #D1748A;
+            --coral-red: #FF6B6B;
+            --seaweed-green: #4A9B6F;
+            --sand-beige: #F5DEB3;
+            --plant-green: #7CB342;
+            --dark-green: #1B5E20;
+            --sky-yellow: #FFD700;
+            --flower-pink: #FF69B4;
+            --white: #FFFFFF;
+            --gray: #CCCCCC;
+            --dark-gray: #333333;
+        }
 
-/* Top bar */
-.top{display:flex;align-items:center;justify-content:space-between;gap:.75rem;min-height:2.75rem}
-.top h1{font-size:1.25rem;font-weight:700;letter-spacing:-.02em}
-.top .sub{font-size:.75rem;color:var(--muted);margin-top:2px}
-.back{color:var(--accent);font-weight:600;padding:.5rem .25rem;min-height:var(--tap);display:inline-flex;align-items:center}
-.iconbtn{
-  width:var(--tap);height:var(--tap);border-radius:50%;
-  display:inline-flex;align-items:center;justify-content:center;
-  background:var(--surface);border:1px solid var(--border);font-size:1.1rem;
-}
-.iconbtn:active{background:var(--surface-2)}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--ocean-light) 0%, var(--land-light) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
 
-/* Cards */
-.card{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:1rem;
-}
-.card-lg{padding:1.25rem;border-radius:var(--radius-lg)}
-.section-title{
-  font-size:.7rem;font-weight:700;text-transform:uppercase;
-  letter-spacing:.14em;color:var(--muted);margin:.25rem .25rem .5rem;
-}
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-/* Buttons */
-.btn{
-  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-  min-height:var(--tap);padding:0 1.1rem;border-radius:var(--radius-sm);
-  font-weight:600;font-size:.95rem;width:100%;transition:transform .08s,background .15s;
-}
-.btn:active{transform:scale(.98)}
-.btn-primary{background:var(--accent);color:#0b1a12}
-.btn-primary:hover{background:var(--accent-2)}
-.btn-secondary{background:var(--surface-2);border:1px solid var(--border);color:var(--text)}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
-.btn-danger{background:var(--danger);color:#fff}
-.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
-.btn-row{display:flex;gap:.5rem}
-.btn-row>.btn{flex:1}
+        .world-screen {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 800px;
+            transition: transform 0.3s ease;
+        }
 
-/* Inputs */
-.field{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem}
-.field label{font-size:.8rem;color:var(--muted);font-weight:600}
-.field input,.field select,.field textarea{
-  background:var(--bg-2);border:1px solid var(--border);
-  border-radius:var(--radius-sm);padding:.85rem .9rem;color:var(--text);
-  min-height:var(--tap);width:100%;
-}
-.field input:focus,.field textarea:focus,.field select:focus{
-  outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);
-}
-.field .error{color:var(--danger);font-size:.78rem;display:none}
-.field.invalid .error{display:block}
-.field.invalid input,.field.invalid select{border-color:var(--danger)}
-.hint{font-size:.78rem;color:var(--muted)}
+        .world-screen:hover {
+            transform: translateY(-5px);
+        }
 
-/* Pill chips */
-.chips{display:flex;flex-wrap:wrap;gap:.5rem}
-.chip{
-  display:inline-flex;align-items:center;gap:.4rem;
-  background:var(--surface-2);border:1px solid var(--border);
-  padding:.55rem .9rem;border-radius:999px;font-size:.88rem;font-weight:500;
-  min-height:40px;
-}
-.chip[aria-pressed="true"]{
-  background:var(--accent-soft);border-color:var(--accent);color:var(--accent);
-}
-.chip .ico{font-size:1.05rem;line-height:1}
+        /* OCEAN WORLD */
+        .ocean-screen {
+            background: linear-gradient(180deg, var(--ocean-light) 0%, var(--ocean-mid) 100%);
+        }
 
-/* Onboarding rules */
-.rule-list{display:flex;flex-direction:column;gap:.6rem}
-.rule-list li{
-  display:flex;gap:.7rem;padding:.85rem 1rem;border:1px solid var(--border);
-  border-radius:var(--radius-sm);background:var(--bg-2);font-size:.9rem;list-style:none;
-}
-.rule-list li::before{content:"●";color:var(--accent);font-size:.7rem;margin-top:.4rem}
+        .header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--ocean-mid);
+            color: white;
+        }
 
-/* Dashboard hero */
-.hero{
-  background:linear-gradient(160deg,var(--surface) 0%,var(--bg-2) 100%);
-  border:1px solid var(--border);border-radius:var(--radius-lg);
-  padding:1.25rem;display:flex;align-items:center;gap:1rem;
-}
-.ring{position:relative;width:104px;height:104px;flex-shrink:0}
-.ring svg{transform:rotate(-90deg)}
-.ring .ring-bg{stroke:var(--surface-2)}
-.ring .ring-fg{stroke:var(--accent);transition:stroke-dashoffset .5s ease}
-.ring .ring-num{
-  position:absolute;inset:0;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-}
-.ring .ring-num strong{font-size:1.6rem;font-weight:800;line-height:1}
-.ring .ring-num span{font-size:.7rem;color:var(--muted)}
-.hero-meta{flex:1;min-width:0}
-.hero-meta .greet{font-size:.85rem;color:var(--muted)}
-.hero-meta .day-big{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;margin:.1rem 0}
-.hero-meta .mood{font-size:.85rem;color:var(--accent)}
+        .health-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: var(--ocean-mid);
+        }
 
-/* Today summary stats */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-top:.75rem}
-.stat{background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:.6rem;text-align:center}
-.stat .v{font-weight:700;font-size:1rem}
-.stat .l{font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+        .header-icons {
+            display: flex;
+            gap: 8px;
+        }
 
-.warn-strip{
-  background:var(--danger-soft);border:1px solid rgba(239,77,77,.4);
-  color:#ffb0b0;padding:.7rem .9rem;border-radius:var(--radius-sm);
-  font-size:.82rem;display:flex;gap:.5rem;align-items:flex-start;
-}
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-/* Calendar grid 7-col */
-.cal-head,.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:.4rem}
-.cal-head div{font-size:.65rem;color:var(--muted-2);text-align:center;font-weight:600}
-.cal-cell{
-  aspect-ratio:1;border-radius:10px;background:var(--surface);
-  border:1px solid var(--border);display:flex;flex-direction:column;
-  align-items:center;justify-content:center;font-size:.78rem;
-  position:relative;color:var(--text);
-}
-.cal-cell.locked{opacity:.35}
-.cal-cell.done{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
-.cal-cell.today{outline:2px solid var(--accent);outline-offset:1px}
-.cal-cell.failed{background:var(--danger-soft);border-color:var(--danger);color:#ffb0b0}
-.cal-cell strong{font-size:.92rem;font-weight:700;line-height:1}
-.cal-cell .lbl{font-size:.6rem;color:inherit;opacity:.8;margin-top:2px}
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
 
-/* Progress bar */
-.bar{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-top:.6rem}
-.bar > div{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s}
+        .terrain {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
 
-/* Day tasks */
-.task{
-  display:flex;align-items:center;gap:.85rem;padding:.85rem 1rem;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);margin-bottom:.5rem;min-height:var(--tap);
-}
-.task input[type=checkbox]{
-  width:24px;height:24px;accent-color:var(--accent);flex-shrink:0;
-}
-.task label{flex:1;font-size:.92rem;font-weight:500}
-.task small{display:block;color:var(--muted);font-size:.74rem;font-weight:400;margin-top:2px}
-.task.done label{color:var(--muted);text-decoration:line-through}
+        svg {
+            width: 100%;
+            height: 100%;
+        }
 
-/* Water counter */
-.counter{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:.5rem;
-}
-.counter button{
-  width:48px;height:48px;border-radius:12px;background:var(--surface-2);
-  font-size:1.4rem;font-weight:700;
-}
-.counter .val{text-align:center;flex:1}
-.counter .val strong{font-size:1.6rem;font-weight:800;display:block}
-.counter .val span{font-size:.74rem;color:var(--muted)}
+        .creatures {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
 
-/* Photos */
-.photos{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.6rem}
-.photo-tile{
-  aspect-ratio:1;border-radius:10px;background:var(--bg-2);
-  border:1px dashed var(--border);position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;font-size:1.4rem;color:var(--muted);
-}
-.photo-tile img{width:100%;height:100%;object-fit:cover}
-.photo-tile .x{
-  position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;
-  background:rgba(0,0,0,.7);color:#fff;font-size:.85rem;
-  display:flex;align-items:center;justify-content:center;
-}
-.photo-tile.add{cursor:pointer}
+        .creature {
+            position: absolute;
+            animation: swim 4s ease-in-out infinite;
+        }
 
-/* Bottom nav */
-.nav{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:0;
-  width:100%;max-width:480px;
-  background:var(--bg-2);border-top:1px solid var(--border);
-  display:flex;justify-content:space-around;
-  padding:.4rem 0 calc(.4rem + env(safe-area-inset-bottom));
-  z-index:50;
-}
-.nav button{
-  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:.5rem;color:var(--muted);font-size:.65rem;font-weight:600;
-  min-height:var(--tap);
-}
-.nav button .ico{font-size:1.25rem}
-.nav button[aria-current="true"]{color:var(--accent)}
+        @keyframes swim {
+            0% { transform: translateX(-100px); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateX(calc(100vw + 100px)); opacity: 0; }
+        }
 
-/* Modal */
-.modal-wrap{
-  position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;padding:1rem;z-index:100;
-}
-.modal-wrap.open{display:flex}
-.modal{
-  background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);
-  padding:1.5rem;max-width:380px;width:100%;box-shadow:var(--shadow);
-}
-.modal h2{font-size:1.15rem;margin-bottom:.5rem}
-.modal p{font-size:.88rem;color:var(--muted);margin-bottom:1rem}
+        .fish { font-size: 24px; animation-delay: 0s; }
+        .whale { font-size: 32px; animation-delay: 1s; animation-duration: 5s; }
 
-/* History */
-.hist-item{
-  background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);padding:1rem;margin-bottom:.5rem;
-}
-.hist-item .row{display:flex;justify-content:space-between;font-size:.85rem}
-.hist-item .row strong{color:var(--text)}
-.hist-item .row span{color:var(--muted)}
+        .task-card {
+            margin: 16px;
+            padding: 16px;
+            background: var(--ocean-light);
+            border-radius: 16px;
+            border: 2px solid var(--ocean-mid);
+        }
 
-/* Ideas / AI agent */
-.scan-result{display:none}
-.scan-result.show{display:block;animation:fade .3s}
-.meal-card{
-  background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:.9rem;margin-bottom:.5rem;
-}
-.meal-card .meal-head{display:flex;justify-content:space-between;font-weight:700;font-size:.95rem}
-.meal-card .meal-kcal{color:var(--accent);font-size:.85rem;font-weight:600}
-.meal-card .meal-body{font-size:.82rem;color:var(--muted);margin-top:.3rem}
+        .task-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--ocean-mid);
+        }
 
-.yt-card{
-  background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius);
-  padding:.9rem;display:flex;gap:.7rem;align-items:flex-start;
-}
-.yt-thumb{
-  width:54px;height:54px;flex-shrink:0;border-radius:10px;
-  background:linear-gradient(135deg,#ff3b3b,#c70000);
-  display:flex;align-items:center;justify-content:center;font-size:1.4rem;
-}
-.yt-card .ttl{font-weight:700;font-size:.92rem}
-.yt-card .sub{font-size:.78rem;color:var(--muted);margin-top:2px}
-.disclaimer{
-  margin-top:1rem;padding:.85rem 1rem;border-radius:var(--radius-sm);
-  background:var(--surface-2);border:1px solid var(--border);
-  font-size:.74rem;color:var(--muted);line-height:1.5;
-}
+        .task-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-top: 4px;
+        }
 
-/* Toast */
-.toast{
-  position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
-  background:var(--surface);border:1px solid var(--border);
-  padding:.7rem 1.1rem;border-radius:999px;font-size:.85rem;
-  opacity:0;transition:all .3s;pointer-events:none;z-index:200;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+        .task-description {
+            font-size: 12px;
+            color: var(--dark-gray);
+            margin: 8px 0;
+            line-height: 1.5;
+        }
 
-/* Utility */
-.row{display:flex;gap:.5rem;align-items:center}
-.grow{flex:1}
-.center{text-align:center}
-.muted{color:var(--muted)}
-.small{font-size:.8rem}
-.hidden{display:none !important}
-.unit-toggle{display:inline-flex;background:var(--bg-2);border:1px solid var(--border);border-radius:999px;padding:3px}
-.unit-toggle button{padding:.4rem .9rem;border-radius:999px;font-size:.78rem;font-weight:600;color:var(--muted);min-height:36px}
-.unit-toggle button[aria-pressed="true"]{background:var(--accent);color:#0b1a12}
-.bmi-pill{display:inline-block;padding:.3rem .7rem;border-radius:999px;font-size:.78rem;font-weight:600}
-.bmi-low{background:#4a6fff33;color:#9bb6ff}
-.bmi-ok{background:var(--accent-soft);color:var(--accent)}
-.bmi-high{background:var(--danger-soft);color:#ffb0b0}
+        .progress-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-@supports (padding:max(0px)){
-  .app{padding-top:env(safe-area-inset-top)}
-}
+        .progress-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--ocean-mid);
+        }
 
+        .progress-dot.empty {
+            background: var(--gray);
+        }
 
-/* --- 75 Strong Plant System Styles --- */
-.plant-card {
-  background: linear-gradient(to bottom, #e0f2fe, #ffffff);
-  border-radius: 16px;
-  padding: 20px;
-  margin: 20px auto;
-  max-width: 450px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-  text-align: center;
-  font-family: system-ui, -apple-system, sans-serif;
-}
-.plant-header h2 {
-  margin: 0 0 4px 0;
-  color: #1e293b;
-  font-size: 24px;
-}
-.plant-header p {
-  margin: 0 0 15px 0;
-  font-size: 14px;
-  font-weight: 600;
-  min-height: 40px;
-  padding: 0 10px;
-}
-.canvas-container {
-  position: relative;
-  width: 100%;
-  height: 350px;
-  overflow: hidden;
-}
-/* Breathing/Sway Effect */
-.sway-group {
-  transform-origin: 200px 320px;
-  animation: plantSway 4s ease-in-out infinite alternate;
-}
-@keyframes plantSway {
-  0% { transform: rotate(-2deg); }
-  100% { transform: rotate(2deg); }
-}
-/* Plant Jump When Watered */
-.plant-jump {
-  animation: plantBounce 0.5s ease-out;
-}
-@keyframes plantBounce {
-  0%, 100% { transform: translateY(0); }
-  30% { transform: translateY(-12px); }
-  60% { transform: translateY(2px); }
-}
-/* Rain/Water Drops */
-.water-drop {
-  opacity: 0;
-  transform: translateY(-20px);
-}
-.watering .water-drop {
-  animation: waterFall 0.8s linear forwards;
-}
-@keyframes waterFall {
-  0% { transform: translateY(-20px); opacity: 0; }
-  20% { opacity: 1; }
-  90% { transform: translateY(260px); opacity: 1; }
-  100% { transform: translateY(260px); opacity: 0; }
-}
-/* Autumn Leaf Fall Physics */
-.falling-leaf {
-  position: absolute;
-  font-size: 20px;
-  top: -20px;
-  pointer-events: none;
-  animation: leafDrop 3.5s linear forwards;
-}
-@keyframes leafDrop {
-  0% { transform: translateY(0) rotate(0deg) translateX(0); opacity: 1; }
-  50% { transform: translateY(150px) rotate(180deg) translateX(25px); }
-  100% { transform: translateY(310px) rotate(360deg) translateX(-10px); opacity: 0.7; }
-}
-/* Debug & Test Control Buttons */
-.plant-btn {
-  background: #475569;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  margin: 4px;
-  transition: opacity 0.2s;
-}
-.plant-btn:hover { opacity: 0.9; }
-.btn-water { background: #0284c7; }
-.btn-reset { background: #b91c1c; }
+        .progress-line {
+            flex: 1;
+            height: 4px;
+            background: var(--gray);
+            border-radius: 2px;
+        }
 
+        .collectibles {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            padding: 12px 0;
+        }
 
+        .collectible-item {
+            text-align: center;
+        }
 
-/* ============================================================
-   75 STRONG HORIZONTAL CALENDAR STRIP (TOP)
-   ============================================================ */
-.top-calendar-strip {
-  display: flex;
-  overflow-x: auto;
-  padding: 12px 8px;
-  gap: 14px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  scrollbar-width: none; /* Hide for Firefox */
-}
-.top-calendar-strip::-webkit-scrollbar {
-  display: none; /* Hide for Chrome/Safari */
-}
-.calendar-day-node {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  cursor: pointer;
-}
-.day-ring-wrapper {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 2px solid var(--muted-2);
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--text);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
+        .collectible-emoji {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 4px;
+        }
 
-/* Color brackets matching your growth phases */
-.calendar-day-node.completed-stage1 .day-ring-wrapper { border-color: #90EE90; background: rgba(144, 238, 144, 0.1); color: #90EE90; }
-.calendar-day-node.completed-stage2 .day-ring-wrapper { border-color: #2E7D32; background: rgba(46, 125, 50, 0.1); color: #2E7D32; }
-.calendar-day-node.completed-stage3 .day-ring-wrapper { border-color: #1B5E20; background: rgba(27, 94, 32, 0.1); color: #1B5E20; }
-.calendar-day-node.completed-stage4 .day-ring-wrapper { border-color: #0D47A1; background: rgba(13, 71, 161, 0.1); color: #0D47A1; }
-.calendar-day-node.completed-stage5 .day-ring-wrapper { border-color: #C2185B; background: rgba(194, 24, 91, 0.1); color: #C2185B; }
+        .collectible-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
 
-/* Highlight ring for the day currently selected */
-.calendar-day-node.active .day-ring-wrapper {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
-  background: rgba(56, 189, 248, 0.2) !important;
-  color: #fff !important;
-}
-.day-label-sub {
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
+        /* LAND WORLD */
+        .land-screen {
+            background: linear-gradient(180deg, var(--land-light) 0%, var(--land-mid) 100%);
+        }
 
-/* ============================================================
-   BOTTOM IMMERSIVE PLANT BACKGROUND
-   ============================================================ */
-#s-dashboard {
-  position: relative;
-  min-height: 100vh;
-  padding-bottom: 60px;
-}
+        .land-header {
+            padding: 16px 20px;
+            background: var(--land-mid);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+        }
 
-.bg-plant-layer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 380px;
-  pointer-events: none; /* Keeps native cards/buttons interactive */
-  z-index: 0;
-  opacity: 0.22;
-}
+        .palm-trees {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 40px;
+        }
 
-.dashboard-foreground-content {
-  position: relative;
-  z-index: 1;
-}
+        .palm-tree {
+            font-size: 40px;
+            animation: sway 3s ease-in-out infinite;
+        }
 
-/* Plant breathing sway */
-.sway-group {
-  transform-origin: 200px 350px;
-  animation: backgroundSway 5s ease-in-out infinite alternate;
-}
-@keyframes backgroundSway {
-  0% { transform: rotate(-1deg); }
-  100% { transform: rotate(1deg); }
-}
+        @keyframes sway {
+            0%, 100% { transform: translateX(0) rotate(0deg); }
+            50% { transform: translateX(2px) rotate(1deg); }
+        }
 
-/* Interactive Water Drops */
-.water-drop { opacity: 0; transform: translateY(-10px); }
-.watering .water-drop { animation: dropFall 0.7s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards; }
-@keyframes dropFall {
-  0% { transform: translateY(-10px); opacity: 0; }
-  30% { opacity: 1; }
-  90% { transform: translateY(300px); opacity: 1; }
-  100% { transform: translateY(300px); opacity: 0; }
-}
-.plant-jump { animation: plantBounce 0.4s ease-out; }
-@keyframes plantBounce {
-  0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-8px); }
-}
+        .sky-elements {
+            position: absolute;
+            top: 40px;
+            right: 40px;
+            font-size: 28px;
+            animation: float 4s ease-in-out infinite;
+        }
 
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
 
-</style>
+        .birds {
+            position: absolute;
+            top: 80px;
+            left: 100px;
+            display: flex;
+            gap: 20px;
+            animation: fly 6s ease-in-out infinite;
+        }
+
+        @keyframes fly {
+            0% { transform: translateX(0); }
+            50% { transform: translateX(40px); }
+            100% { transform: translateX(0); }
+        }
+
+        .airplane {
+            position: absolute;
+            top: 120px;
+            right: -50px;
+            font-size: 32px;
+            animation: fly-across 7s ease-in-out infinite;
+        }
+
+        @keyframes fly-across {
+            0% { right: -50px; top: 120px; }
+            50% { right: 50%; top: 100px; }
+            100% { right: calc(100% + 50px); top: 120px; }
+        }
+
+        .orca {
+            position: absolute;
+            bottom: 200px;
+            left: -100px;
+            font-size: 48px;
+            animation: swim-orca 8s ease-in-out infinite;
+        }
+
+        @keyframes swim-orca {
+            0% { left: -100px; opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { left: calc(100vw + 100px); opacity: 0; }
+        }
+
+        .task-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            padding: 16px;
+            margin: 0 16px;
+        }
+
+        .task-grid-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .task-grid-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--dark-gray);
+        }
+
+        .task-grid-box {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            background: var(--gray);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .task-grid-box:hover {
+            transform: scale(1.05);
+        }
+
+        .task-grid-box.completed {
+            background: var(--flower-pink);
+        }
+
+        .bottom-icons {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            padding: 16px;
+        }
+
+        .bottom-icon {
+            font-size: 28px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .bottom-icon:hover {
+            transform: scale(1.2);
+        }
+
+        /* TAB INDICATOR */
+        .tab-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-dot.active {
+            background: white;
+            transform: scale(1.3);
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .world-screen {
+                height: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .world-screen {
+                height: 500px;
+                border-radius: 16px;
+            }
+            .header, .land-header {
+                padding: 12px 16px;
+            }
+            .icon-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+            .task-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+                padding: 12px;
+                margin: 0 12px;
+            }
+            .collectibles {
+                gap: 24px;
+            }
+            .palm-trees {
+                padding: 30px 20px;
+                gap: 15px;
+            }
+            .palm-tree {
+                font-size: 32px;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        /* INFO SECTION */
+        .info-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 1400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .info-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark-gray);
+            margin-bottom: 16px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .info-card {
+            padding: 16px;
+            background: linear-gradient(135deg, var(--ocean-light) 0%, var(--land-light) 100%);
+            border-radius: 12px;
+            border: 2px solid var(--ocean-mid);
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: var(--ocean-mid);
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark-gray);
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <!-- OCEAN WORLD -->
+        <div class="world-screen ocean-screen fade-in">
+            <div class="header">
+                <div class="health-bar">
+                    <span>❤️</span>
+                    <span>1000+</span>
+                </div>
+                <div class="header-icons">
+                    <button class="icon-btn">⚙️</button>
+                    <button class="icon-btn">📋</button>
+                    <button class="icon-btn">≡</button>
+                    <button class="icon-btn">➕</button>
+                </div>
+            </div>
 
+            <div class="terrain">
+                <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--ocean-light);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:var(--ocean-mid);stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="sandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--sand-beige);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#E8D7A0;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
 
-<div class="plant-card">
-  <div class="plant-header">
-    <h2 id="plant-day-title">Day 1</h2>
-    <p id="plant-message">Day 1-10: Your journey begins small, but rooted. 🌿</p>
-  </div>
+                    <!-- Water -->
+                    <rect width="400" height="400" fill="url(#oceanGradient)" />
 
-  <div class="canvas-container" id="plant-canvas-container">
-    <svg id="plant-svg" width="100%" height="320" viewBox="0 0 400 320" style="display:block;">
-      <g id="water-group">
-        <path class="water-drop" d="M200,10 Q195,20 200,25 Q205,20 200,10 Z" fill="#38bdf8" style="animation-delay:0s;" />
-        <path class="water-drop" d="M170,0 Q165,10 170,15 Q175,10 170,0 Z" fill="#38bdf8" style="animation-delay:0.15s;" />
-        <path class="water-drop" d="M230,5 Q225,15 230,20 Q235,15 230,5 Z" fill="#38bdf8" style="animation-delay:0.05s;" />
-      </g>
+                    <!-- Bubbles -->
+                    <circle cx="80" cy="60" r="12" fill="var(--ocean-light)" opacity="0.4" />
+                    <circle cx="320" cy="100" r="8" fill="var(--ocean-light)" opacity="0.3" />
+                    <circle cx="200" cy="80" r="6" fill="var(--ocean-light)" opacity="0.35" />
 
-      <rect x="140" y="310" width="120" height="10" rx="5" fill="#8B5A2B" />
+                    <!-- Sand base -->
+                    <polygon points="0,300 200,250 400,300 200,350" fill="url(#sandGradient)" />
+                    <polygon points="0,300 200,250 200,350 0,400" fill="#D4C5A0" />
+                    <polygon points="400,300 200,250 200,350 400,400" fill="#E8D7A0" />
 
-      <g id="plant-body" class="sway-group">
-        <path id="stem-element" d="M196,310 L198,280 L202,280 L204,310 Z" fill="#5C4033" style="transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 200px 310px;" />
+                    <!-- Seaweed -->
+                    <path d="M 60 300 Q 55 280 60 260 Q 65 240 60 220" stroke="var(--seaweed-green)" stroke-width="8" fill="none" stroke-linecap="round" />
+                    <path d="M 100 300 Q 95 270 100 240 Q 105 210 100 180" stroke="var(--seaweed-green)" stroke-width="6" fill="none" stroke-linecap="round" />
+                    <path d="M 140 300 Q 135 285 140 270" stroke="var(--seaweed-green)" stroke-width="5" fill="none" stroke-linecap="round" />
 
-        <path class="leaf" data-min-day="1" d="M198,300 Q175,290 170,300 Q185,310 198,300 Z" fill="#90EE90" style="transform-origin: 198px 300px;" />
-        <path class="leaf" data-min-day="1" d="M202,298 Q225,288 230,298 Q215,308 202,298 Z" fill="#90EE90" style="transform-origin: 202px 298px;" />
-        <path class="leaf" data-min-day="1" d="M198,285 Q180,270 175,280 Q190,290 198,285 Z" fill="#7CCD7C" style="transform-origin: 198px 285px;" />
-        <path class="leaf" data-min-day="1" d="M202,283 Q220,268 225,278 Q210,288 202,283 Z" fill="#7CCD7C" style="transform-origin: 202px 283px;" />
+                    <!-- Coral -->
+                    <path d="M 50 320 L 50 300 L 35 300 M 50 310 L 65 310" stroke="var(--coral-red)" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+                    <circle cx="30" cy="310" r="4" fill="var(--coral-red)" />
+                    <circle cx="70" cy="310" r="4" fill="var(--coral-red)" />
 
-        <path class="leaf" data-min-day="11" d="M198,240 Q165,220 160,235 Q185,255 198,240 Z" fill="#4CAF50" style="transform-origin: 198px 240px;" />
-        <path class="leaf" data-min-day="11" d="M202,235 Q235,215 240,230 Q215,250 202,235 Z" fill="#4CAF50" style="transform-origin: 202px 235px;" />
-        
-        <path class="leaf" data-min-day="31" d="M198,170 Q160,150 155,170 Q185,190 198,170 Z" fill="#388E3C" style="transform-origin: 198px 170px;" />
-        <path class="leaf" data-min-day="31" d="M202,165 Q240,145 245,165 Q215,185 202,165 Z" fill="#388E3C" style="transform-origin: 202px 165px;" />
+                    <!-- Yellow seaweed -->
+                    <path d="M 180 300 Q 175 270 180 240" stroke="#D4AF37" stroke-width="5" fill="none" stroke-linecap="round" />
+                </svg>
 
-        <path class="leaf" data-min-day="51" d="M200,110 Q155,85 150,110 Q185,130 200,110 Z" fill="#2E7D32" style="transform-origin: 200px 110px;" />
-        <path class="leaf" data-min-day="51" d="M200,105 Q245,80 250,105 Q215,125 200,105 Z" fill="#2E7D32" style="transform-origin: 200px 105px;" />
+                <!-- Animated creatures -->
+                <div class="creatures">
+                    <div class="creature fish" style="top: 120px;">🐟</div>
+                    <div class="creature whale" style="top: 180px;">🐋</div>
+                </div>
+            </div>
 
-        <g class="flower" data-min-day="11" transform="translate(165, 230)">
-          <circle cx="-6" cy="0" r="5" fill="#FFB74D" /><circle cx="6" cy="0" r="5" fill="#FFB74D" />
-          <circle cx="0" cy="-6" r="5" fill="#FFB74D" /><circle cx="0" cy="6" r="5" fill="#FFB74D" />
-          <circle cx="0" cy="0" r="4" fill="#FFF" />
-        </g>
-        <g class="flower" data-min-day="31" transform="translate(240, 160)">
-          <circle cx="-6" cy="0" r="5" fill="#F48FB1" /><circle cx="6" cy="0" r="5" fill="#F48FB1" />
-          <circle cx="0" cy="-6" r="5" fill="#F48FB1" /><circle cx="0" cy="6" r="5" fill="#F48FB1" />
-          <circle cx="0" cy="0" r="3" fill="#FFF" />
-        </g>
-        <g class="flower" data-min-day="51" transform="translate(200, 95)">
-          <circle cx="-8" cy="0" r="7" fill="#FF8A80" /><circle cx="8" cy="0" r="7" fill="#FF8A80" />
-          <circle cx="0" cy="-8" r="7" fill="#FF8A80" /><circle cx="0" cy="10" r="7" fill="#FF8A80" />
-          <circle cx="0" cy="0" r="5" fill="#FFD54F" />
-        </g>
-      </g>
+            <div class="task-card">
+                <div class="task-date">3/25/25</div>
+                <div class="task-title">Drink water daily</div>
+                <div class="task-description">5 times a week<br>1 times a day</div>
+                <div class="progress-bar">
+                    <div class="progress-dot"></div>
+                    <div class="progress-line"></div>
+                    <div class="progress-dot empty"></div>
+                </div>
+            </div>
 
-      <g id="fallen-leaves-layer" style="display:none;">
-        <path d="M160,312 Q145,309 140,314 Q155,317 160,312 Z" fill="#CD853F" />
-        <path d="M185,313 Q175,310 170,315 Q180,317 185,313 Z" fill="#D2691E" />
-        <path d="M225,312 Q240,308 245,313 Q235,317 225,312 Z" fill="#CD853F" />
-      </g>
-    </svg>
-  </div>
+            <div class="collectibles">
+                <div class="collectible-item">
+                    <span class="collectible-emoji">⭐</span>
+                    <span class="collectible-count">3</span>
+                </div>
+                <div class="collectible-item">
+                    <span class="collectible-emoji">💛</span>
+                    <span class="collectible-count">2</span>
+                </div>
+            </div>
 
-  <div style="margin-top:15px; border-top:1px solid #e2e8f0; padding-top:10px;">
-    <button class="plant-btn" onclick="devAdvanceDays(5)">+5 Days</button>
-    <button class="plant-btn" onclick="devAdvanceDays(20)">+20 Days</button>
-    <br/>
-    <button class="plant-btn btn-water" onclick="waterPlant()">💦 Water Plant</button>
-    <button class="plant-btn btn-web-reset btn-reset" onclick="resetPlant()">🍂 Reset (Fail)</button>
-  </div>
-</div>
+            <div class="tab-indicator">
+                <div class="tab-dot active"></div>
+                <div class="tab-dot"></div>
+            </div>
+        </div>
 
+        <!-- LAND WORLD -->
+        <div class="world-screen land-screen fade-in">
+            <div class="land-header">
+                Day 25 / 75
+            </div>
 
-<div class="app" id="app">
+            <div class="terrain">
+                <svg viewBox="0 0 400 400" preserveAspectRatio="xMidYMid slice">
+                    <defs>
+                        <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:var(--land-light);stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:var(--land-mid);stop-opacity:1" />
+                        </linearGradient>
+                        <linearGradient id="groundGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#F9D9E5;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#E8A8C8;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
 
-<!-- =========================================================
-     ONBOARDING
-     ========================================================= -->
-<section class="screen" id="s-onboarding">
-  <div class="top"><div><h1>Welcome</h1><div class="sub">Start your 75 Hard journey</div></div></div>
+                    <!-- Sky -->
+                    <rect width="400" height="400" fill="url(#skyGradient)" />
 
-  <div class="card card-lg">
-    <div class="field">
-      <label for="o-name">Name</label>
-      <input id="o-name" type="text" autocomplete="given-name" placeholder="Your name" />
-      <div class="error">Please enter your name.</div>
+                    <!-- Moon -->
+                    <circle cx="320" cy="60" r="25" fill="var(--sky-yellow)" opacity="0.8" />
+
+                    <!-- Ground -->
+                    <polygon points="0,280 200,230 400,280 200,330" fill="url(#groundGradient)" />
+                    <polygon points="0,280 200,230 200,330 0,380" fill="#E8A8C8" />
+                    <polygon points="400,280 200,230 200,330 400,380" fill="#F9D9E5" />
+
+                    <!-- Palm trees -->
+                    <g>
+                        <rect x="58" y="290" width="4" height="30" fill="#8B7355" />
+                        <circle cx="60" cy="260" r="15" fill="var(--plant-green)" opacity="0.8" />
+                        <circle cx="45" cy="270" r="12" fill="var(--dark-green)" opacity="0.7" />
+                        <circle cx="75" cy="270" r="12" fill="var(--dark-green)" opacity="0.7" />
+                    </g>
+                    <g>
+                        <rect x="118" y="290" width="4" height="32" fill="#8B7355" />
+                        <circle cx="120" cy="258" r="16" fill="var(--plant-green)" opacity="0.8" />
+                    </g>
+                    <g>
+                        <rect x="178" y="280" width="4" height="28" fill="#8B7355" />
+                        <circle cx="180" cy="252" r="14" fill="var(--plant-green)" opacity="0.8" />
+                    </g>
+                    <g>
+                        <rect x="238" y="290" width="4" height="31" fill="#8B7355" />
+                        <circle cx="240" cy="259" r="15" fill="var(--plant-green)" opacity="0.8" />
+                    </g>
+                    <g>
+                        <rect x="298" y="285" width="4" height="29" fill="#8B7355" />
+                        <circle cx="300" cy="256" r="14" fill="var(--plant-green)" opacity="0.8" />
+                    </g>
+                </svg>
+
+                <!-- Animated elements -->
+                <div class="sky-elements">🌙</div>
+                <div class="birds">
+                    <span>🦅</span>
+                    <span>🦅</span>
+                    <span>🦅</span>
+                </div>
+                <div class="airplane">✈️</div>
+                <div class="orca">🦈</div>
+            </div>
+
+            <!-- Task completion grid -->
+            <div class="task-grid">
+                <div class="task-grid-item">
+                    <div class="task-grid-label">1/1</div>
+                    <div class="task-grid-box completed"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">1/2</div>
+                    <div class="task-grid-box completed"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">1/2</div>
+                    <div class="task-grid-box completed"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box completed"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">1/2</div>
+                    <div class="task-grid-box"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box completed"></div>
+                </div>
+                <div class="task-grid-item">
+                    <div class="task-grid-label">2/2</div>
+                    <div class="task-grid-box"></div>
+                </div>
+            </div>
+
+            <!-- Bottom decorative icons -->
+            <div class="bottom-icons">
+                <span class="bottom-icon">🌙</span>
+                <span class="bottom-icon">🦈</span>
+                <span class="bottom-icon">🦅</span>
+            </div>
+
+            <div class="tab-indicator">
+                <div class="tab-dot"></div>
+                <div class="tab-dot active"></div>
+            </div>
+        </div>
     </div>
 
-    <div class="row" style="gap:.6rem">
-      <div class="field grow">
-        <label for="o-age">Age</label>
-        <input id="o-age" type="number" inputmode="numeric" min="10" max="100" placeholder="25" />
-        <div class="error">Age 10–100.</div>
-      </div>
-      <div class="field grow">
-        <label for="o-gender">Gender</label>
-        <select id="o-gender">
-          <option value="">Select</option>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-          <option value="other">Other</option>
-        </select>
-        <div class="error">Required.</div>
-      </div>
+    <!-- Information Section -->
+    <div class="info-section">
+        <h2 class="info-title">🎯 75 Hard Day Challenge</h2>
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="info-label">🌊 OCEAN WORLD</div>
+                <div class="info-value">5 Tasks</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">🌴 LAND WORLD</div>
+                <div class="info-value">10 Tasks</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">📈 PROGRESS</div>
+                <div class="info-value">Day 25</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">🏆 STREAK</div>
+                <div class="info-value">24 Days</div>
+            </div>
+        </div>
     </div>
 
-    <div class="field">
-      <label>Units</label>
-      <div class="unit-toggle" role="tablist">
-        <button type="button" id="u-metric" aria-pressed="true">Metric (cm/kg)</button>
-        <button type="button" id="u-imperial" aria-pressed="false">Imperial (ft/lb)</button>
-      </div>
-    </div>
-
-    <div class="row" style="gap:.6rem">
-      <div class="field grow">
-        <label for="o-height"><span id="lab-h">Height (cm)</span></label>
-        <input id="o-height" type="number" inputmode="decimal" placeholder="170" />
-        <div class="error">Required.</div>
-      </div>
-      <div class="field grow">
-        <label for="o-weight"><span id="lab-w">Weight (kg)</span></label>
-        <input id="o-weight" type="number" inputmode="decimal" placeholder="65" />
-        <div class="error">Required.</div>
-      </div>
-    </div>
-
-    <div class="field">
-      <label for="o-activity">Activity level</label>
-      <select id="o-activity">
-        <option value="">Select</option>
-        <option value="sedentary">Sedentary (little/no exercise)</option>
-        <option value="light">Light (1–3 days/week)</option>
-        <option value="moderate">Moderate (3–5 days/week)</option>
-        <option value="active">Active (6–7 days/week)</option>
-      </select>
-      <div class="error">Required.</div>
-    </div>
-
-    <div class="field">
-      <label>Goal</label>
-      <div class="chips" id="goal-chips">
-        <button type="button" class="chip" data-goal="lose"><span class="ico">🔥</span>Lose</button>
-        <button type="button" class="chip" data-goal="maintain" aria-pressed="true"><span class="ico">⚖️</span>Maintain</button>
-        <button type="button" class="chip" data-goal="gain"><span class="ico">💪</span>Gain</button>
-      </div>
-    </div>
-
-    <div class="card" style="background:var(--bg-2);margin-top:.5rem">
-      <div class="row" style="justify-content:space-between">
-        <span class="muted small">Live BMI</span>
-        <span id="bmi-pill" class="bmi-pill bmi-ok">—</span>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" id="btn-onboard-next" style="margin-top:1rem">Continue →</button>
-  </div>
-</section>
-
-<!-- =========================================================
-     RULES SCREEN
-     ========================================================= -->
-<section class="screen" id="s-rules">
-  <div class="top">
-    <button class="back" data-go="s-onboarding">← Back</button>
-    <div></div>
-  </div>
-  <h1 style="font-size:1.5rem;font-weight:800">The 6 Rules</h1>
-  <p class="muted small">Miss even one and the challenge restarts at Day 1. No grace days. No substitutions.</p>
-
-  <ul class="rule-list">
-    <li>Two 45-minute workouts daily — one must be outdoors.</li>
-    <li>Follow a strict diet of your choice — no cheat meals, no alcohol.</li>
-    <li>Drink 1 gallon (≈16 glasses / 4 L) of water daily.</li>
-    <li>Read 10 pages of a non-fiction / self-improvement book.</li>
-    <li>Take one progress photo every single day.</li>
-    <li>No compromises. Complete all 75 days — no skips.</li>
-  </ul>
-
-  <div class="warn-strip"><span>⚠️</span><span>If a day's 24-hour window ends with any rule unmet, the challenge resets automatically.</span></div>
-
-  <button class="btn btn-primary" id="btn-start-challenge">I understand — Start Day 1</button>
-</section>
-
-<!-- =========================================================
-     DASHBOARD
-     ========================================================= -->
-<section class="screen" id="s-dashboard">
-  
-  <div class="top-calendar-strip" id="app-horizontal-calendar"></div>
-
-  <div class="dashboard-foreground-content">
-    <div class="top">
-      <div>
-        <h1 id="greet">Hey</h1>
-        <div class="sub" id="dash-sub">Day 1 of 75</div>
-      </div>
-      <button class="iconbtn" id="btn-profile" aria-label="Profile">👤</button>
-    </div>
-
-    <div class="hero">
-      <div class="ring">
-        <svg width="104" height="104" viewBox="0 0 104 104">
-          <circle class="ring-bg" cx="52" cy="52" r="46" fill="none" stroke-width="8"/>
-          <circle class="ring-fg" cx="52" cy="52" r="46" fill="none" stroke-width="8" stroke-linecap="round" id="ring-fg" stroke-dasharray="289.027" stroke-dashoffset="289.027"/>
-        </svg>
-        <div class="ring-num"><strong id="ring-day">1</strong><span>of 75</span></div>
-      </div>
-      <div class="hero-meta">
-        <div class="greet" id="hero-date">—</div>
-        <div class="day-big" id="hero-day">Day 1</div>
-        <div class="mood" id="hero-mood">Let's go.</div>
-      </div>
-    </div>
-
-    <button class="btn btn-primary" id="btn-open-today" style="margin-top: 1rem;">Open Today →</button>
-
-    <div class="stats" id="today-stats">
-      <div class="stat"><div class="v" id="st-tasks">0/6</div><div class="l">Tasks</div></div>
-      <div class="stat"><div class="v" id="st-water">0/16</div><div class="l">Water</div></div>
-      <div class="stat"><div class="v" id="st-photo">0</div><div class="l">Photos</div></div>
-    </div>
-
-    <div class="warn-strip" id="warn-strip" style="margin-top: 1rem;"><span>⚠️</span><span>Miss a task and the challenge resets to Day 1.</span></div>
-
-    <div class="section-title">75-Day Overview Progress</div>
-    <div class="card" style="padding:.75rem">
-      <div class="row" style="justify-content:space-between">
-        <span class="small muted"><span id="done-count">0</span> of 75 days completed</span>
-        <span class="small" id="pct">0%</span>
-      </div>
-      <div class="bar"><div id="bar-fill" style="width:0%"></div></div>
-    </div>
-  </div>
-
-  <div class="bg-plant-layer" id="plant-canvas-container">
-    <svg id="plant-svg" width="100%" height="100%" viewBox="0 0 400 360" preserveAspectRatio="xMidYMax slice">
-      <g id="water-group">
-        <path class="water-drop" d="M200,10 Q195,20 200,25 Q205,20 200,10 Z" fill="#38bdf8" style="animation-delay:0s;" />
-        <path class="water-drop" d="M175,5 Q170,15 175,20 Q180,15 175,5 Z" fill="#38bdf8" style="animation-delay:0.12s;" />
-        <path class="water-drop" d="M225,0 Q220,10 225,15 Q230,10 225,0 Z" fill="#38bdf8" style="animation-delay:0.06s;" />
-      </g>
-      <rect x="120" y="345" width="160" height="6" rx="3" fill="#3e2723" opacity="0.4" />
-      <g id="plant-body" class="sway-group">
-        <path id="stem-element" d="M195,350 L197,320 L203,320 L205,350 Z" fill="#8d6e63" style="transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); transform-origin: 200px 350px;" />
-        <path class="leaf" data-min-day="1" d="M197,330 Q170,320 165,330 Q180,340 197,330 Z" fill="#a5d6a7" />
-        <path class="leaf" data-min-day="1" d="M203,328 Q230,318 235,328 Q220,338 203,328 Z" fill="#a5d6a7" />
-        <path class="leaf" data-min-day="1" d="M197,315 Q175,300 170,310 Q185,320 197,315 Z" fill="#81c784" />
-        <path class="leaf" data-min-day="1" d="M203,313 Q225,298 230,308 Q215,318 203,313 Z" fill="#81c784" />
-        <path class="leaf" data-min-day="11" d="M197,260 Q160,240 155,255 Q180,275 197,260 Z" fill="#66bb6a" />
-        <path class="leaf" data-min-day="11" d="M203,255 Q235,235 240,250 Q215,270 203,255 Z" fill="#66bb6a" />
-        <path class="leaf" data-min-day="31" d="M197,190 Q155,170 150,190 Q180,210 197,190 Z" fill="#4caf50" />
-        <path class="leaf" data-min-day="31" d="M203,185 Q245,165 250,185 Q215,205 203,185 Z" fill="#4caf50" />
-        <path class="leaf" data-min-day="51" d="M200,120 Q150,95 145,120 Q180,140 200,120 Z" fill="#388e3c" />
-        <path class="leaf" data-min-day="51" d="M200,115 Q250,90 255,115 Q220,135 200,115 Z" fill="#388e3c" />
-        <g class="flower" data-min-day="11" transform="translate(160, 250)"><circle cx="-5" cy="0" r="4" fill="#ffb74d"/><circle cx="5" cy="0" r="4" fill="#ffb74d"/><circle cx="0" cy="-5" r="4" fill="#ffb74d"/><circle cx="0" cy="5" r="4" fill="#ffb74d"/><circle cx="0" cy="0" r="3" fill="#fff"/></g>
-        <g class="flower" data-min-day="31" transform="translate(245, 180)"><circle cx="-5" cy="0" r="4" fill="#f48fb1"/><circle cx="5" cy="0" r="4" fill="#f48fb1"/><circle cx="0" cy="-5" r="4" fill="#f48fb1"/><circle cx="0" cy="5" r="4" fill="#f48fb1"/><circle cx="0" cy="0" r="3" fill="#fff"/></g>
-        <g class="flower" data-min-day="51" transform="translate(200, 105)"><circle cx="-7" cy="0" r="6" fill="#ff8a80"/><circle cx="7" cy="0" r="6" fill="#ff8a80"/><circle cx="0" cy="-7" r="6" fill="#ff8a80"/><circle cx="0" cy="7" r="6" fill="#ff8a80"/><circle cx="0" cy="0" r="4" fill="#ffd54f"/></g>
-      </g>
-    </svg>
-  </div>
-
-</section>
-<!-- =========================================================
-     DAY DETAIL
-     ========================================================= -->
-<section class="screen" id="s-day">
-  <div class="top">
-    <button class="back" id="btn-day-back">← Calendar</button>
-    <button class="iconbtn" id="btn-day-save" aria-label="Save">💾</button>
-  </div>
-  <div>
-    <h1 id="day-title">Day 1</h1>
-    <div class="sub" id="day-window">—</div>
-  </div>
-
-  <div class="section-title">Today's 6 Tasks</div>
-  <div id="task-list"></div>
-
-  <div class="section-title">Water — Goal 16 glasses</div>
-  <div class="counter">
-    <button id="water-minus">−</button>
-    <div class="val"><strong id="water-val">0</strong><span>glasses (<span id="water-l">0.00</span> L)</span></div>
-    <button id="water-plus">+</button>
-  </div>
-
-  <div class="section-title">Progress Photo (max 4)</div>
-  <div class="photos" id="photo-grid"></div>
-  <input type="file" id="photo-input" accept="image/*" capture="environment" multiple class="hidden" />
-
-  <div class="section-title">Notes</div>
-  <textarea id="day-notes" rows="3" placeholder="How are you feeling today?" style="background:var(--bg-2);border:1px solid var(--border);color:var(--text);border-radius:var(--radius-sm);padding:.85rem;width:100%;font-family:inherit"></textarea>
-
-  <div class="row" style="justify-content:space-between;font-size:.82rem;color:var(--muted)">
-    <span>Logged: <span id="day-time">—</span></span>
-    <button class="btn-ghost" id="btn-now" style="padding:.4rem .8rem;border-radius:8px;border:1px solid var(--border);min-height:36px;font-size:.78rem">Set to Now</button>
-  </div>
-
-  <button class="btn btn-primary" id="btn-save-day">Save Day</button>
-</section>
-
-<!-- =========================================================
-     IDEAS — Food & Workout AI Agent
-     ========================================================= -->
-<section class="screen" id="s-ideas">
-  <div class="top">
-    <div><h1>Ideas</h1><div class="sub">AI agent · rotates daily</div></div>
-  </div>
-
-  <div class="card">
-    <div class="section-title" style="margin-top:0">Cuisine preference</div>
-    <div class="chips" id="cuisine-chips">
-      <button type="button" class="chip" data-cuisine="indian" aria-pressed="true"><span class="ico">🇮🇳</span>Indian</button>
-      <button type="button" class="chip" data-cuisine="mediterranean"><span class="ico">🫒</span>Mediterranean</button>
-      <button type="button" class="chip" data-cuisine="keto"><span class="ico">🥑</span>Keto</button>
-      <button type="button" class="chip" data-cuisine="vegetarian"><span class="ico">🌱</span>Vegetarian</button>
-      <button type="button" class="chip" data-cuisine="highprotein"><span class="ico">🍗</span>High Protein</button>
-    </div>
-
-    <div class="section-title">Workout style</div>
-    <div class="chips" id="style-chips">
-      <button type="button" class="chip" data-style="strength" aria-pressed="true"><span class="ico">🏋️</span>Strength</button>
-      <button type="button" class="chip" data-style="cardio"><span class="ico">🏃</span>Cardio</button>
-      <button type="button" class="chip" data-style="hiit"><span class="ico">⚡</span>HIIT</button>
-      <button type="button" class="chip" data-style="yoga"><span class="ico">🧘</span>Yoga</button>
-    </div>
-
-    <button class="btn btn-primary" id="btn-scan" style="margin-top:1rem">🔍 Scan Internet</button>
-  </div>
-
-  <div class="scan-result" id="scan-result">
-    <div class="section-title">Today's Meal Plan <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:400">· auto-rotates</span></div>
-    <div id="meal-list"></div>
-
-    <div class="section-title">Indoor Workout (YouTube)</div>
-    <div id="yt-list"></div>
-
-    <div class="section-title">Outdoor Workout</div>
-    <div class="card" id="outdoor-card"></div>
-
-    <div class="disclaimer">
-      <strong>⚠️ Medical & Allergy Disclaimer:</strong>
-      Recipes and workouts are general suggestions, not medical advice. Check ingredients for allergies and consult a doctor before starting any new diet or fitness program — especially if you are pregnant, taking medication, or have a health condition. You assume all risk for activities performed.
-    </div>
-  </div>
-</section>
-
-<!-- =========================================================
-     HISTORY
-     ========================================================= -->
-<section class="screen" id="s-history">
-  <div class="top">
-    <div><h1>History</h1><div class="sub">Past attempts</div></div>
-  </div>
-  <div id="hist-list"></div>
-</section>
-
-<!-- =========================================================
-     PROFILE
-     ========================================================= -->
-<section class="screen" id="s-profile">
-  <div class="top">
-    <button class="back" data-go="s-dashboard">← Back</button>
-    <div></div>
-  </div>
-  <h1>Profile</h1>
-  <div class="card" id="profile-card"></div>
-
-  <div class="section-title">Reminders</div>
-  <div class="card">
-    <div class="row" style="justify-content:space-between"><span>Water every 2h</span>
-      <button class="btn btn-secondary" id="btn-reminders" style="width:auto;padding:0 1rem;min-height:36px;font-size:.82rem">Enable</button>
-    </div>
-    <div class="hint" style="margin-top:.5rem">Browser notifications — works while app stays open.</div>
-  </div>
-
-  <div class="section-title">Data</div>
-  <div class="card">
-    <div class="btn-row" style="margin-bottom:.5rem">
-      <button class="btn btn-secondary" id="btn-export">📦 Export</button>
-      <button class="btn btn-secondary" id="btn-import">📥 Import</button>
-    </div>
-    <input type="file" id="import-input" accept="application/json" class="hidden" />
-    <button class="btn btn-danger" id="btn-reset">Reset all data</button>
-  </div>
-</section>
-
-<!-- =========================================================
-     BOTTOM NAV
-     ========================================================= -->
-<nav class="nav" id="bottom-nav" hidden>
-  <button data-nav="s-dashboard"><span class="ico">🏠</span><span>Home</span></button>
-  <button data-nav="cal"><span class="ico">📅</span><span>Today</span></button>
-  <button data-nav="s-ideas"><span class="ico">💡</span><span>Ideas</span></button>
-  <button data-nav="s-history"><span class="ico">📊</span><span>History</span></button>
-  <button data-nav="s-profile"><span class="ico">👤</span><span>Profile</span></button>
-</nav>
-
-<!-- =========================================================
-     RESET FAILURE MODAL
-     ========================================================= -->
-<div class="modal-wrap" id="modal-fail">
-  <div class="modal">
-    <h2>💔 You broke your cycle</h2>
-    <p id="fail-text">A required task was missed. The challenge will reset to Day 1.</p>
-    <div class="field">
-      <label>Type <strong>RESET</strong> to confirm</label>
-      <input id="reset-confirm" type="text" autocomplete="off" placeholder="RESET" />
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-secondary" id="btn-fail-later">Not now</button>
-      <button class="btn btn-danger" id="btn-fail-confirm" disabled>Reset to Day 1</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-</div><!-- /.app -->
-
-<script>
-/* ============================================================
-   75 HARD — APPLICATION CODE
-   ============================================================ */
-(function(){
-"use strict";
-
-/* ----- Constants ----- */
-const STORAGE_KEY = "75hard_profile";
-const TOTAL_DAYS = 75;
-const MAX_PHOTOS = 4;
-const MS_PER_DAY = 24*60*60*1000;
-const WATER_GOAL = 16;
-const DB_NAME = "75hard-photos";
-const DB_STORE = "photos";
-
-/* ----- Global state ----- */
-let profile = null;
-let currentDay = 1;
-let pendingFailure = null;
-let realtimeTimer = null;
-let lastUnlockedDay = 0;
-let units = "metric";
-let goal = "maintain";
-let cuisine = "indian";
-let workoutStyle = "strength";
-let reminderTimer = null;
-
-/* ----- DOM ----- */
-const $ = (id) => document.getElementById(id);
-const screens = {
-  "s-onboarding": $("s-onboarding"),
-  "s-rules": $("s-rules"),
-  "s-dashboard": $("s-dashboard"),
-  "s-day": $("s-day"),
-  "s-ideas": $("s-ideas"),
-  "s-history": $("s-history"),
-  "s-profile": $("s-profile"),
-};
-
-/* ============================================================
-   STORAGE SERVICE
-   ============================================================ */
-function todayISO(){
-  const d = new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
-}
-function defaultDay(){
-  return {
-    tasks:{ workout1:false, workout2:false, diet:false, water:false, read:false, photo:false },
-    water:0, photoIds:[], notes:"", time:"", completed:false
-  };
-}
-function loadProfile(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return null;
-    const p = JSON.parse(raw);
-    return migrateProfile(p);
-  }catch(e){ console.error("loadProfile",e); return null; }
-}
-function saveProfile(){
-  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(profile)); }
-  catch(e){ toast("⚠️ Storage full — export your data."); console.error(e); }
-}
-function migrateProfile(p){
-  if(!p.days) p.days = {};
-  if(!p.archive) p.archive = [];
-  if(!p.resetCount) p.resetCount = 0;
-  if(!p.units) p.units = "metric";
-  if(!p.goal) p.goal = "maintain";
-  if(!p.startTimestamp && p.startDate) p.startTimestamp = p.startDate+"T00:00:00.000";
-  // migrate any legacy photos array → photoIds
-  Object.keys(p.days).forEach(k=>{
-    const d = p.days[k];
-    if(!d.photoIds) d.photoIds = [];
-    if(Array.isArray(d.photos) && d.photos.length && !d.photoIds.length){
-      d.photos.forEach((b64,i)=>{ const id="legacy_"+k+"_"+i; idbPut(id,b64).catch(()=>{}); d.photoIds.push(id); });
-      delete d.photos;
-    }
-    if(!d.tasks) d.tasks = defaultDay().tasks;
-  });
-  if(p.pendingFailure) pendingFailure = p.pendingFailure;
-  return p;
-}
-function getDayData(n){
-  const k = String(n);
-  if(!profile.days[k]) profile.days[k] = defaultDay();
-  return profile.days[k];
-}
-
-/* ----- IndexedDB for photos ----- */
-function idbOpen(){
-  return new Promise((res,rej)=>{
-    const req = indexedDB.open(DB_NAME,1);
-    req.onupgradeneeded = () => req.result.createObjectStore(DB_STORE);
-    req.onsuccess = () => res(req.result);
-    req.onerror = () => rej(req.error);
-  });
-}
-async function idbPut(id, blob){
-  const db = await idbOpen();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(DB_STORE,"readwrite");
-    tx.objectStore(DB_STORE).put(blob,id);
-    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
-  });
-}
-async function idbGet(id){
-  const db = await idbOpen();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(DB_STORE,"readonly");
-    const r = tx.objectStore(DB_STORE).get(id);
-    r.onsuccess = () => res(r.result);
-    r.onerror = () => rej(r.error);
-  });
-}
-async function idbDel(id){
-  const db = await idbOpen();
-  return new Promise((res,rej)=>{
-    const tx = db.transaction(DB_STORE,"readwrite");
-    tx.objectStore(DB_STORE).delete(id);
-    tx.oncomplete = res; tx.onerror = () => rej(tx.error);
-  });
-}
-
-/* compress to ≤800px JPEG blob */
-function compressImage(file){
-  return new Promise((res,rej)=>{
-    const img = new Image();
-    img.onload = () => {
-      const maxSide = 800;
-      const scale = Math.min(1, maxSide/Math.max(img.width,img.height));
-      const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
-      const c = document.createElement("canvas");
-      c.width=w; c.height=h;
-      c.getContext("2d").drawImage(img,0,0,w,h);
-      c.toBlob(b => b ? res(b) : rej(new Error("compress")), "image/jpeg", 0.75);
-    };
-    img.onerror = rej;
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-/* ============================================================
-   24-HOUR WINDOW LOGIC
-   ============================================================ */
-function getChallengeStartMs(){
-  if(!profile || !profile.startTimestamp) return Date.now();
-  return new Date(profile.startTimestamp).getTime();
-}
-function getDayWindowStartMs(n){ return getChallengeStartMs() + (n-1)*MS_PER_DAY; }
-function getDayWindowEndMs(n){ return getChallengeStartMs() + n*MS_PER_DAY; }
-function getUnlockedDay(){
-  if(!profile || !profile.setup) return 1;
-  const elapsed = Date.now() - getChallengeStartMs();
-  const d = Math.floor(elapsed/MS_PER_DAY)+1;
-  return Math.max(1, Math.min(TOTAL_DAYS, d));
-}
-function isDayUnlocked(n){ return n <= getUnlockedDay(); }
-function getDayWindowLabel(n){
-  const d = new Date(getDayWindowStartMs(n));
-  return d.toLocaleDateString(undefined,{day:"numeric",month:"short"});
-}
-
-/* ============================================================
-   COMPLETION & AUDIT
-   ============================================================ */
-function meetsMandatoryRules(d){
-  if(!d || !d.tasks) return false;
-  const t = d.tasks;
-  return t.workout1 && t.workout2 && t.diet && t.read && t.photo
-      && d.water >= WATER_GOAL
-      && d.photoIds.length >= 1;
-}
-function isDayComplete(d){ return d && (d.completed === true || meetsMandatoryRules(d)); }
-function countCompletedDays(){
-  let n=0;
-  for(let i=1;i<=TOTAL_DAYS;i++){
-    if(isDayComplete(profile.days[String(i)])) n++;
-  }
-  return n;
-}
-function auditPastDays(){
-  if(pendingFailure) return;
-  const unlocked = getUnlockedDay();
-  for(let i=1;i<unlocked;i++){
-    const d = profile.days[String(i)];
-    if(!isDayComplete(d)){
-      queueFailureWarning(i,"Day "+i+" ended without completing all rules.");
-      return;
-    }
-  }
-}
-
-/* ============================================================
-   RESET / ARCHIVE
-   ============================================================ */
-function queueFailureWarning(failedDay, reason){
-  if(pendingFailure && pendingFailure.failedDay === failedDay){ showFailureModal(); return; }
-  pendingFailure = { failedDay, reason, queuedAt:new Date().toISOString() };
-  profile.pendingFailure = pendingFailure;
-  saveProfile();
-  showFailureModal();
-}
-function showFailureModal(){
-  if(!pendingFailure) return;
-  $("fail-text").textContent = pendingFailure.reason + " Type RESET below to confirm and start fresh.";
-  $("reset-confirm").value = "";
-  $("btn-fail-confirm").disabled = true;
-  $("modal-fail").classList.add("open");
-}
-function hideFailureModal(){ $("modal-fail").classList.remove("open"); }
-function archiveCurrentRun(failedDay, reason){
-  profile.archive.push({
-    endedAt:new Date().toISOString(),
-    startedAt:profile.startTimestamp,
-    failedDay, reason,
-    completedDays:countCompletedDays(),
-    resetCount: profile.resetCount
-  });
-}
-async function executeChallengeReset(){
-  archiveCurrentRun(pendingFailure.failedDay, pendingFailure.reason);
-  // Clear photo blobs
-  for(const k of Object.keys(profile.days)){
-    for(const id of (profile.days[k].photoIds||[])){
-      try{ await idbDel(id); }catch(e){}
-    }
-  }
-  profile.days = {};
-  profile.startTimestamp = new Date().toISOString();
-  profile.resetCount = (profile.resetCount||0)+1;
-  delete profile.pendingFailure;
-  pendingFailure = null;
-  saveProfile();
-  hideFailureModal();
-  toast("Challenge reset to Day 1.");
-  renderDashboard();
-  showScreen("s-dashboard");
-}
-
-/* ============================================================
-   NAVIGATION
-   ============================================================ */
-function showScreen(name){
-  Object.keys(screens).forEach(k=>{
-    const on = k===name;
-    screens[k].classList.toggle("active", on);
-    screens[k].setAttribute("aria-hidden", on?"false":"true");
-  });
-  // Show nav only on main app screens
-  const showNav = profile && profile.setup && ["s-dashboard","s-day","s-ideas","s-history","s-profile"].includes(name);
-  $("bottom-nav").hidden = !showNav;
-  // Highlight nav
-  document.querySelectorAll(".nav button").forEach(b=>{
-    b.setAttribute("aria-current", b.dataset.nav===name ? "true":"false");
-  });
-  window.scrollTo(0,0);
-}
-
-/* ============================================================
-   ONBOARDING
-   ============================================================ */
-function setUnits(u){
-  units = u;
-  $("u-metric").setAttribute("aria-pressed", u==="metric");
-  $("u-imperial").setAttribute("aria-pressed", u==="imperial");
-  $("lab-h").textContent = u==="metric" ? "Height (cm)" : "Height (in)";
-  $("lab-w").textContent = u==="metric" ? "Weight (kg)" : "Weight (lb)";
-  updateBmi();
-}
-function updateBmi(){
-  const hRaw = parseFloat($("o-height").value);
-  const wRaw = parseFloat($("o-weight").value);
-  const pill = $("bmi-pill");
-  if(!hRaw || !wRaw){ pill.textContent="—"; pill.className="bmi-pill bmi-ok"; return; }
-  let hM, wKg;
-  if(units==="metric"){ hM = hRaw/100; wKg = wRaw; }
-  else{ hM = hRaw*0.0254; wKg = wRaw*0.453592; }
-  const bmi = wKg/(hM*hM);
-  let label, cls;
-  if(bmi<18.5){ label="Underweight"; cls="bmi-low"; }
-  else if(bmi<25){ label="Normal"; cls="bmi-ok"; }
-  else{ label="Overweight"; cls="bmi-high"; }
-  pill.textContent = bmi.toFixed(1)+" · "+label;
-  pill.className = "bmi-pill "+cls;
-}
-function validateOnboard(){
-  let ok = true;
-  const fields = [
-    {id:"o-name", test:v=>v.trim().length>=1},
-    {id:"o-age", test:v=>{const n=+v;return n>=10&&n<=100}},
-    {id:"o-gender", test:v=>!!v},
-    {id:"o-height", test:v=>+v>0},
-    {id:"o-weight", test:v=>+v>0},
-    {id:"o-activity", test:v=>!!v},
-  ];
-  fields.forEach(f=>{
-    const el = $(f.id);
-    const wrap = el.closest(".field");
-    if(!f.test(el.value)){ wrap.classList.add("invalid"); ok=false; }
-    else wrap.classList.remove("invalid");
-  });
-  return ok;
-}
-function buildProfileFromForm(){
-  const hRaw = parseFloat($("o-height").value);
-  const wRaw = parseFloat($("o-weight").value);
-  return {
-    name: $("o-name").value.trim(),
-    age: +$("o-age").value,
-    gender: $("o-gender").value,
-    units,
-    heightCm: units==="metric" ? hRaw : +(hRaw*2.54).toFixed(1),
-    weightKg: units==="metric" ? wRaw : +(wRaw*0.453592).toFixed(1),
-    activity: $("o-activity").value,
-    goal,
-    setup:true,
-    startTimestamp:new Date().toISOString(),
-    days:{}, archive:[], resetCount:0,
-  };
-}
-
-/* ============================================================
-   DASHBOARD
-   ============================================================ */
-function moodForProgress(done, day){
-  if(done >= 75) return "🏆 Legendary.";
-  if(done/day >= 0.9) return "🔥 On fire.";
-  if(done/day >= 0.6) return "💪 Strong.";
-  if(done/day >= 0.3) return "👊 Keep pushing.";
-  return "⚡ Today's the day.";
-}
-function renderDashboard(){
-  const unlocked = getUnlockedDay();
-  currentDay = unlocked;
-  $("greet").textContent = "Hey, "+profile.name.split(" ")[0];
-  $("dash-sub").textContent = "Day "+unlocked+" of 75 · Reset count: "+(profile.resetCount||0);
-  $("hero-date").textContent = new Date().toLocaleDateString(undefined,{weekday:"long",day:"numeric",month:"long"});
-  $("hero-day").textContent = "Day "+unlocked;
-  $("ring-day").textContent = unlocked;
-
-  const done = countCompletedDays();
-  $("done-count").textContent = done;
-  const pct = Math.round((done/TOTAL_DAYS)*100);
-  $("pct").textContent = pct+"%";
-  $("bar-fill").style.width = pct+"%";
-
-  // ring
-  const C = 2*Math.PI*46;
-  $("ring-fg").setAttribute("stroke-dasharray", C);
-  $("ring-fg").setAttribute("stroke-dashoffset", C*(1 - done/TOTAL_DAYS));
-
-  $("hero-mood").textContent = moodForProgress(done, unlocked);
-
-  // today stats
-  const td = getDayData(unlocked);
-  const tCount = Object.values(td.tasks).filter(Boolean).length;
-  $("st-tasks").textContent = tCount+"/6";
-  $("st-water").textContent = td.water+"/"+WATER_GOAL;
-  $("st-photo").textContent = (td.photoIds||[]).length;
-
-  // calendar 7-col
-  const grid = $("cal-grid");
-  grid.innerHTML = "";
-  for(let i=1;i<=TOTAL_DAYS;i++){
-    const btn = document.createElement("button");
-    btn.className = "cal-cell";
-    btn.innerHTML = "<strong>"+i+"</strong><span class=\"lbl\">"+getDayWindowLabel(i)+"</span>";
-    const unlockedHere = isDayUnlocked(i);
-    const data = profile.days[String(i)];
-    if(!unlockedHere){ btn.classList.add("locked"); btn.disabled = true; }
-    if(isDayComplete(data)) btn.classList.add("done");
-    if(i===unlocked) btn.classList.add("today");
-    btn.addEventListener("click",()=>openDay(i));
-    grid.appendChild(btn);
-  }
-}
-
-
-/* ============================================================
-   INTEGRATED 75 HARD STRIP CALENDAR & PLANT GRAPHIC ENGINE
-   ============================================================ */
-
-function renderStripCalendar() {
-  const container = document.getElementById('app-horizontal-calendar');
-  if (!container) return;
-  container.innerHTML = '';
-
-  for (let d = 1; d <= 75; d++) {
-    const dayNode = document.createElement('div');
-    dayNode.className = `calendar-day-node ${d === currentDay ? 'active' : ''}`;
-    
-    // Choose stage group colors
-    let stageClass = '';
-    if (d <= 10) stageClass = 'completed-stage1';
-    else if (d <= 30) stageClass = 'completed-stage2';
-    else if (d <= 50) stageClass = 'completed-stage3';
-    else if (d <= 70) stageClass = 'completed-stage4';
-    else stageClass = 'completed-stage5';
-
-    const dayData = getDayData(d);
-    if (dayData && dayData.completed) {
-      dayNode.classList.add(stageClass);
-    }
-
-    dayNode.innerHTML = `
-      <div class="day-ring-wrapper">${d}</div>
-      <span class="day-label-sub">Day</span>
-    `;
-
-    dayNode.onclick = () => {
-      currentDay = d;
-      document.querySelectorAll('.calendar-day-node').forEach(n => n.classList.remove('active'));
-      dayNode.classList.add('active');
-      
-      openDay(d);
-      showScreen("s-day");
-      updateBackgroundPlant();
-    };
-
-    container.appendChild(dayNode);
-  }
-  
-  // Center frame target focus smoothly
-  const activeNode = container.children[currentDay - 1];
-  if (activeNode) {
-    container.scrollTo({ left: activeNode.offsetLeft - container.offsetWidth / 2 + 22, behavior: 'smooth' });
-  }
-}
-
-function updateBackgroundPlant() {
-  let day = countCompletedDays() || 1;
-  let stemScaleY = 1 + (day * 0.04); 
-
-  const stem = document.getElementById('stem-element');
-  if (stem) stem.style.transform = `scaleY(${stemScaleY})`;
-
-  const leaves = document.querySelectorAll('.leaf, .flower');
-  leaves.forEach(el => {
-    const minDay = parseInt(el.getAttribute('data-min-day') || "1", 10);
-    el.style.transition = "transform 0.4s ease-out";
-    el.style.transform = day >= minDay ? "scale(1)" : "scale(0)";
-  });
-}
-
-// Hook into your water count or task completions to animate the splash!
-function triggerWateringSplashEffect() {
-  const container = document.getElementById('plant-canvas-container');
-  const plantBody = document.getElementById('plant-body');
-  if(!container || !plantBody) return;
-  
-  container.classList.remove('watering');
-  void container.offsetWidth; // Force hardware thread reflow
-  container.classList.add('watering');
-
-  setTimeout(() => {
-    plantBody.classList.add('plant-jump');
-    setTimeout(() => plantBody.classList.remove('plant-jump'), 400);
-  }, 350);
-}
-
-/* ============================================================
-   DAY SCREEN
-   ============================================================ */
-const TASKS = [
-  {key:"workout1", label:"Workout 1 (45 min)", hint:"Indoor or outdoor"},
-  {key:"workout2", label:"Workout 2 (45 min)", hint:"Must be outdoors — no exceptions"},
-  {key:"diet", label:"Follow your diet", hint:"No cheat meals, no alcohol"},
-  {key:"water", label:"Drink water goal", hint:"Tracked by counter below"},
-  {key:"read", label:"Read 10 pages", hint:"Non-fiction / self-improvement"},
-  {key:"photo", label:"Progress photo", hint:"At least 1 photo required"},
-];
-function openDay(n){
-  if(pendingFailure){ showFailureModal(); return; }
-  if(!isDayUnlocked(n)){ toast("🔒 Day "+n+" is locked."); return; }
-  currentDay = n;
-  const d = getDayData(n);
-  $("day-title").textContent = "Day "+n;
-  const start = new Date(getDayWindowStartMs(n));
-  const end = new Date(getDayWindowEndMs(n));
-  $("day-window").textContent = start.toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"})+" → "+end.toLocaleString(undefined,{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
-
-  // tasks
-  const list = $("task-list"); list.innerHTML="";
-  TASKS.forEach(t=>{
-    const row = document.createElement("div");
-    row.className = "task"+(d.tasks[t.key]?" done":"");
-    row.innerHTML = `<input type="checkbox" id="ck-${t.key}" ${d.tasks[t.key]?"checked":""} />
-      <label for="ck-${t.key}">${t.label}<small>${t.hint}</small></label>`;
-    row.querySelector("input").addEventListener("change",e=>{
-      d.tasks[t.key] = e.target.checked;
-      row.classList.toggle("done", e.target.checked);
-      // Auto-tick water task when goal hit
-      if(t.key==="water" && e.target.checked && d.water < WATER_GOAL){
-        toast("💧 Goal is "+WATER_GOAL+" glasses — keep drinking!");
-      }
-      saveProfile();
-    });
-    list.appendChild(row);
-  });
-
-  // water
-  $("water-val").textContent = d.water;
-  $("water-l").textContent = (d.water*0.25).toFixed(2);
-
-  // photos
-  renderPhotos(d);
-
-  // notes/time
-  $("day-notes").value = d.notes||"";
-  $("day-time").textContent = d.time || "—";
-}
-async function renderPhotos(d){
-  const grid = $("photo-grid"); grid.innerHTML = "";
-  for(const id of d.photoIds){
-    const tile = document.createElement("div");
-    tile.className = "photo-tile";
-    try{
-      const blob = await idbGet(id);
-      if(blob){
-        const url = typeof blob === "string" ? blob : URL.createObjectURL(blob);
-        tile.innerHTML = `<img src="${url}" alt="proof" /><button class="x" aria-label="remove">×</button>`;
-        tile.querySelector(".x").addEventListener("click",async()=>{
-          d.photoIds = d.photoIds.filter(x=>x!==id);
-          await idbDel(id);
-          saveProfile();
-          renderPhotos(d);
+    <script>
+        // Interactive task grid
+        const taskGridBoxes = document.querySelectorAll('.task-grid-box');
+        taskGridBoxes.forEach((box) => {
+            box.addEventListener('click', () => {
+                box.classList.toggle('completed');
+            });
         });
-      }
-    }catch(e){ tile.textContent = "⚠"; }
-    grid.appendChild(tile);
-  }
-  if(d.photoIds.length < MAX_PHOTOS){
-    const add = document.createElement("div");
-    add.className = "photo-tile add";
-    add.textContent = "+";
-    add.addEventListener("click",()=>$("photo-input").click());
-    grid.appendChild(add);
-  }
-}
 
-/* ============================================================
-   IDEAS — Food & Workout AI Agent
-   ============================================================ */
-const MEAL_DB = {
-  indian:[
-    [{n:"Masala oats",k:280},{n:"Paneer bhurji + roti",k:480},{n:"Greek yogurt + nuts",k:200},{n:"Grilled tandoori chicken + dal",k:540}],
-    [{n:"Vegetable poha",k:310},{n:"Rajma rice bowl",k:520},{n:"Roasted chana",k:180},{n:"Palak paneer + 2 rotis",k:560}],
-  ],
-  mediterranean:[
-    [{n:"Greek yogurt + berries",k:260},{n:"Grilled chicken salad",k:450},{n:"Hummus + carrots",k:180},{n:"Salmon + quinoa",k:580}],
-    [{n:"Avocado toast + egg",k:340},{n:"Tuna & olive bowl",k:470},{n:"Feta + tomato",k:200},{n:"Lamb kebab + tabbouleh",k:610}],
-  ],
-  keto:[
-    [{n:"3-egg omelet + cheese",k:380},{n:"Bunless burger + salad",k:520},{n:"Almonds + cheese",k:240},{n:"Ribeye + butter broccoli",k:680}],
-    [{n:"Avocado + bacon",k:420},{n:"Chicken caesar (no croutons)",k:490},{n:"Pork rinds",k:160},{n:"Salmon + asparagus",k:560}],
-  ],
-  vegetarian:[
-    [{n:"Smoothie bowl",k:300},{n:"Chickpea wrap",k:460},{n:"Apple + PB",k:220},{n:"Tofu stir-fry + brown rice",k:540}],
-    [{n:"Overnight oats",k:330},{n:"Lentil soup + bread",k:430},{n:"Cottage cheese + fruit",k:200},{n:"Veggie curry + quinoa",k:520}],
-  ],
-  highprotein:[
-    [{n:"4-egg scramble + oats",k:420},{n:"Chicken & rice bowl",k:580},{n:"Protein shake + banana",k:280},{n:"Steak + sweet potato",k:660}],
-    [{n:"Greek yogurt + whey + nuts",k:380},{n:"Turkey wrap + cottage cheese",k:520},{n:"Tuna pouch + crackers",k:240},{n:"Salmon + rice + greens",k:600}],
-  ],
-};
-const OUTDOOR_DB = {
-  strength:["Park bench dips + push-ups · 45 min","Hill sprint intervals · 8×30s","Sandbag carries + jumps"],
-  cardio:["Brisk walk 6 km","Run 5 km easy","Stair climbing intervals"],
-  hiit:["Park HIIT — 30/30 burpees + squat jumps","Track 400m repeats × 6","Hill sprints × 10"],
-  yoga:["Outdoor sun salutations · 45 min","Park flow + meditation","Beach yoga session"],
-};
-const YT_WEEK1 = [
-  {t:"Chloe Ting · 45-min Full Body Workout", sub:"No equipment · medium intensity"},
-  {t:"Chloe Ting · Strong & Lean Full Body", sub:"Bodyweight · 40 min"},
-  {t:"Chloe Ting · Abs & Core Burn", sub:"45 min · core focus"},
-  {t:"Chloe Ting · 2-Week Shred Full Body", sub:"Strength bodyweight · 45 min"},
-  {t:"Chloe Ting · Slim Thighs Workout", sub:"Lower body · 40 min"},
-  {t:"Chloe Ting · Hourglass Full Body", sub:"Mixed · 45 min"},
-  {t:"Chloe Ting · Arms & Back Definition", sub:"Upper body · 40 min"},
-];
-const YT_WEEK2 = [
-  {t:"MadFit · 45-min Indoor Dance Cardio", sub:"High energy · pop hits"},
-  {t:"emkfit · Dance HIIT Party Workout", sub:"45 min · high intensity"},
-  {t:"Pamela Reif · Cardio Dance", sub:"45 min full body"},
-  {t:"Dance Fitness with Jessica", sub:"Latin cardio · 45 min"},
-  {t:"FitnessBlender · HIIT Cardio Blast", sub:"45 min · explosive"},
-  {t:"305 Fitness · Dance Cardio Workout", sub:"45 min · club style"},
-  {t:"Heather Robertson · Cardio + HIIT", sub:"45 min mixed"},
-];
+        // Animate creatures on page load
+        const creatures = document.querySelectorAll('.creature');
+        creatures.forEach((creature, index) => {
+            creature.style.animationDelay = `${index * 1.5}s`;
+        });
 
-function adjustKcal(k){
-  if(goal==="lose") return Math.max(150, k-70);
-  if(goal==="gain") return k+150;
-  return k;
-}
-function renderIdeas(){
-  const day = Math.max(1, currentDay||1);
-  const meals = MEAL_DB[cuisine][day % MEAL_DB[cuisine].length];
-  const labels = ["Breakfast","Lunch","Snack","Dinner"];
-  const mList = $("meal-list"); mList.innerHTML = "";
-  meals.forEach((m,i)=>{
-    const c = document.createElement("div");
-    c.className = "meal-card";
-    c.innerHTML = `<div class="meal-head"><span>${labels[i]} · ${m.n}</span><span class="meal-kcal">${adjustKcal(m.k)} kcal</span></div><div class="meal-body">Goal: ${goal} · cuisine: ${cuisine}</div>`;
-    mList.appendChild(c);
-  });
-
-  // 2-week YouTube rotation
-  const cycleDay = ((day-1) % 14); // 0..13
-  const week1 = cycleDay < 7;
-  const arr = week1 ? YT_WEEK1 : YT_WEEK2;
-  const pick = arr[cycleDay % 7];
-  const ytList = $("yt-list"); ytList.innerHTML = "";
-  const yc = document.createElement("div");
-  yc.className = "yt-card";
-  yc.innerHTML = `<div class="yt-thumb">▶</div><div><div class="ttl">${pick.t}</div><div class="sub">${pick.sub} · Week ${week1?1:2} (Day ${day})</div></div>`;
-  ytList.appendChild(yc);
-
-  // outdoor rotates by day across selected style
-  const outs = OUTDOOR_DB[workoutStyle];
-  const out = outs[day % outs.length];
-  $("outdoor-card").innerHTML = `<strong>${workoutStyle.toUpperCase()}</strong><div class="muted small" style="margin-top:.3rem">${out}</div>`;
-}
-
-/* ============================================================
-   HISTORY
-   ============================================================ */
-function renderHistory(){
-  const list = $("hist-list"); list.innerHTML="";
-  if(!profile.archive.length){
-    list.innerHTML = `<div class="card muted center small">No past attempts yet — keep going!</div>`;
-    return;
-  }
-  profile.archive.slice().reverse().forEach((a,i)=>{
-    const el = document.createElement("div");
-    el.className = "hist-item";
-    el.innerHTML = `
-      <div class="row" style="justify-content:space-between;margin-bottom:.4rem"><strong>Attempt #${profile.archive.length-i}</strong><span class="muted small">${new Date(a.endedAt).toLocaleDateString()}</span></div>
-      <div class="row" style="justify-content:space-between"><span>Failed on</span><strong>Day ${a.failedDay}</strong></div>
-      <div class="row" style="justify-content:space-between"><span>Days completed</span><strong>${a.completedDays}</strong></div>
-      <div class="muted small" style="margin-top:.4rem">${a.reason||""}</div>`;
-    list.appendChild(el);
-  });
-}
-
-/* ============================================================
-   PROFILE
-   ============================================================ */
-function renderProfile(){
-  const p = profile;
-  $("profile-card").innerHTML = `
-    <div class="row" style="justify-content:space-between"><span class="muted">Name</span><strong>${p.name}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Age</span><strong>${p.age}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Gender</span><strong>${p.gender}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Height</span><strong>${p.heightCm} cm</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Weight</span><strong>${p.weightKg} kg</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Activity</span><strong>${p.activity}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Goal</span><strong>${p.goal}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Started</span><strong>${new Date(p.startTimestamp).toLocaleDateString()}</strong></div>
-    <div class="row" style="justify-content:space-between"><span class="muted">Resets</span><strong>${p.resetCount||0}</strong></div>`;
-}
-
-/* ============================================================
-   EXPORT / IMPORT
-   ============================================================ */
-async function exportBackup(){
-  const data = { profile, photos:{} };
-  for(const k of Object.keys(profile.days)){
-    for(const id of (profile.days[k].photoIds||[])){
-      try{
-        const blob = await idbGet(id);
-        if(blob){
-          const b64 = await blobToB64(blob);
-          data.photos[id] = b64;
-        }
-      }catch(e){}
-    }
-  }
-  const json = JSON.stringify(data);
-  const blob = new Blob([json],{type:"application/json"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = "75hard-backup-"+todayISO()+".json";
-  a.click(); URL.revokeObjectURL(url);
-  toast("✅ Backup downloaded.");
-}
-function blobToB64(blob){
-  return new Promise((res,rej)=>{
-    const r = new FileReader();
-    r.onload = () => res(r.result);
-    r.onerror = rej;
-    r.readAsDataURL(blob);
-  });
-}
-function b64ToBlob(dataUrl){
-  return fetch(dataUrl).then(r=>r.blob());
-}
-async function importBackup(file){
-  try{
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if(!data.profile || !data.profile.startTimestamp) throw new Error("Invalid backup");
-    profile = migrateProfile(data.profile);
-    saveProfile();
-    if(data.photos){
-      for(const id of Object.keys(data.photos)){
-        try{ const blob = await b64ToBlob(data.photos[id]); await idbPut(id, blob); }catch(e){}
-      }
-    }
-    toast("✅ Backup restored.");
-    boot();
-  }catch(e){
-    console.error(e); toast("❌ Invalid backup file.");
-  }
-}
-
-/* ============================================================
-   REMINDERS (water every 2h)
-   ============================================================ */
-async function toggleReminders(){
-  if(!("Notification" in window)){ toast("Notifications not supported."); return; }
-  if(Notification.permission !== "granted"){
-    const p = await Notification.requestPermission();
-    if(p !== "granted"){ toast("Permission denied."); return; }
-  }
-  if(reminderTimer){
-    clearInterval(reminderTimer); reminderTimer = null;
-    $("btn-reminders").textContent = "Enable";
-    toast("Reminders off.");
-  }else{
-    reminderTimer = setInterval(()=>{
-      const d = getDayData(getUnlockedDay());
-      if(d.water < WATER_GOAL){
-        new Notification("💧 75 Hard — drink water",{ body:"Glasses: "+d.water+"/"+WATER_GOAL });
-      }
-    }, 2*60*60*1000);
-    $("btn-reminders").textContent = "Disable";
-    toast("⏰ Water reminders every 2h (while app open).");
-  }
-}
-
-/* ============================================================
-   REALTIME LOOP
-   ============================================================ */
-function tickRealtimeUnlock(){
-  if(!profile || !profile.setup) return;
-  if(pendingFailure){ showFailureModal(); return; }
-  auditPastDays();
-  const u = getUnlockedDay();
-  if(u !== lastUnlockedDay){
-    lastUnlockedDay = u;
-    renderDashboard();
-  }
-}
-function startRealtimeLoop(){
-  if(realtimeTimer) clearInterval(realtimeTimer);
-  lastUnlockedDay = getUnlockedDay();
-  tickRealtimeUnlock();
-  realtimeTimer = setInterval(tickRealtimeUnlock, 30*1000);
-}
-
-/* ============================================================
-   UI BINDINGS
-   ============================================================ */
-function toast(msg){
-  const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove("show"), 2400);
-}
-
-function bindUI(){
-  // Onboarding
-  $("u-metric").addEventListener("click",()=>setUnits("metric"));
-  $("u-imperial").addEventListener("click",()=>setUnits("imperial"));
-  $("o-height").addEventListener("input", updateBmi);
-  $("o-weight").addEventListener("input", updateBmi);
-  $("goal-chips").addEventListener("click",e=>{
-    const b = e.target.closest(".chip"); if(!b) return;
-    goal = b.dataset.goal;
-    [...$("goal-chips").children].forEach(c=>c.setAttribute("aria-pressed", c===b));
-  });
-  $("btn-onboard-next").addEventListener("click",()=>{
-    if(!validateOnboard()){ toast("Please fix the highlighted fields."); return; }
-    showScreen("s-rules");
-  });
-  document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>showScreen(b.dataset.go)));
-  $("btn-start-challenge").addEventListener("click",()=>{
-    profile = buildProfileFromForm();
-    saveProfile();
-    startRealtimeLoop();
-    renderDashboard();
-    showScreen("s-dashboard");
-    toast("🎯 Day 1 begins now.");
-  });
-
-  // Dashboard
-  $("btn-profile").addEventListener("click",()=>{ renderProfile(); showScreen("s-profile"); });
-  $("btn-open-today").addEventListener("click",()=>{ openDay(getUnlockedDay()); showScreen("s-day"); });
-
-  // Day
-  $("btn-day-back").addEventListener("click",()=>{ saveDayLight(); renderDashboard(); showScreen("s-dashboard"); });
-  $("btn-day-save").addEventListener("click",()=>handleSaveDay());
-  $("btn-save-day").addEventListener("click",()=>handleSaveDay());
-  $("water-plus").addEventListener("click",()=>{
-    const d = getDayData(currentDay);
-    d.water = Math.min(d.water+1, 30);
-    $("water-val").textContent = d.water; $("water-l").textContent = (d.water*0.25).toFixed(2);
-    if(d.water >= WATER_GOAL && !d.tasks.water){ d.tasks.water = true; openDay(currentDay); }
-    saveProfile();
-  });
-  $("water-minus").addEventListener("click",()=>{
-    const d = getDayData(currentDay);
-    d.water = Math.max(d.water-1, 0);
-    $("water-val").textContent = d.water; $("water-l").textContent = (d.water*0.25).toFixed(2);
-    saveProfile();
-  });
-  $("btn-now").addEventListener("click",()=>{
-    const d = getDayData(currentDay);
-    d.time = new Date().toLocaleString(undefined,{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"});
-    $("day-time").textContent = d.time; saveProfile();
-  });
-  $("day-notes").addEventListener("input",()=>{ getDayData(currentDay).notes = $("day-notes").value; saveProfile(); });
-  $("photo-input").addEventListener("change", async (e)=>{
-    const files = [...e.target.files];
-    const d = getDayData(currentDay);
-    for(const f of files){
-      if(d.photoIds.length >= MAX_PHOTOS) break;
-      try{
-        const blob = await compressImage(f);
-        const id = "p_"+currentDay+"_"+Date.now()+"_"+Math.random().toString(36).slice(2,6);
-        await idbPut(id, blob);
-        d.photoIds.push(id);
-        if(!d.tasks.photo){ d.tasks.photo = true; }
-        saveProfile();
-      }catch(err){ toast("⚠️ Couldn't save photo"); }
-    }
-    e.target.value = "";
-    renderPhotos(d);
-  });
-
-  // Reset modal
-  $("reset-confirm").addEventListener("input",e=>{
-    $("btn-fail-confirm").disabled = e.target.value.trim().toUpperCase() !== "RESET";
-  });
-  $("btn-fail-later").addEventListener("click", hideFailureModal);
-  $("btn-fail-confirm").addEventListener("click", executeChallengeReset);
-
-  // Ideas
-  $("cuisine-chips").addEventListener("click",e=>{
-    const b = e.target.closest(".chip"); if(!b) return;
-    cuisine = b.dataset.cuisine;
-    [...$("cuisine-chips").children].forEach(c=>c.setAttribute("aria-pressed", c===b));
-    if($("scan-result").classList.contains("show")) renderIdeas();
-  });
-  $("style-chips").addEventListener("click",e=>{
-    const b = e.target.closest(".chip"); if(!b) return;
-    workoutStyle = b.dataset.style;
-    [...$("style-chips").children].forEach(c=>c.setAttribute("aria-pressed", c===b));
-    if($("scan-result").classList.contains("show")) renderIdeas();
-  });
-  $("btn-scan").addEventListener("click",()=>{
-    if(profile && profile.goal) goal = profile.goal;
-    renderIdeas();
-    $("scan-result").classList.add("show");
-    $("btn-scan").textContent = "🔄 Re-scan";
-  });
-
-  // Profile / data
-  $("btn-reminders").addEventListener("click", toggleReminders);
-  $("btn-export").addEventListener("click", exportBackup);
-  $("btn-import").addEventListener("click",()=>$("import-input").click());
-  $("import-input").addEventListener("change",e=>{ if(e.target.files[0]) importBackup(e.target.files[0]); });
-  $("btn-reset").addEventListener("click",()=>{
-    if(!confirm("Erase ALL data and start over? This cannot be undone.")) return;
-    localStorage.removeItem(STORAGE_KEY);
-    indexedDB.deleteDatabase(DB_NAME);
-    location.reload();
-  });
-
-  // Nav
-  document.querySelectorAll(".nav button").forEach(b=>{
-    b.addEventListener("click",()=>{
-      const t = b.dataset.nav;
-      if(t==="cal"){ openDay(getUnlockedDay()); showScreen("s-day"); return; }
-      if(t==="s-ideas") renderIdeas();
-      if(t==="s-history") renderHistory();
-      if(t==="s-profile") renderProfile();
-      if(t==="s-dashboard") renderDashboard();
-      showScreen(t);
-    });
-  });
-}
-
-function saveDayLight(){
-  const d = getDayData(currentDay);
-  d.notes = $("day-notes").value;
-  saveProfile();
-}
-function handleSaveDay(){
-  const d = getDayData(currentDay);
-  d.completed = meetsMandatoryRules(d);
-  saveProfile();
-  if(d.completed){ toast("✅ Day "+currentDay+" complete!"); }
-  else { toast("Saved (incomplete — finish all rules)."); }
-  renderDashboard();
-}
-
-
-/* ============================================================
-   75 STRONG PLANT CORE ANIMATION ENGINE
-   ============================================================ */
-let plantState = {
-  day: 1,
-  isReset: false
-};
-
-function updatePlantEngine() {
-  const day = plantState.day;
-  const isReset = plantState.isReset;
-
-  // 1. Compute Stem Scale Multipliers dynamically based on target day
-  let stemScaleY = 1;
-  if (day <= 10)  stemScaleY = 1 + (day - 1) * 0.12;       // Day 1-10
-  else if (day <= 30) stemScaleY = 2.2 + (day - 10) * 0.08;  // Day 11-30
-  else if (day <= 50) stemScaleY = 3.8 + (day - 30) * 0.07;  // Day 31-50
-  else if (day <= 70) stemScaleY = 5.2 + (day - 50) * 0.08;  // Day 51-70
-  else stemScaleY = 6.8 + (day - 70) * 0.1;                  // Day 71-75
-
-  const stem = document.getElementById('stem-element');
-  if (stem) stem.style.transform = `scaleY(${stemScaleY})`;
-
-  // 2. Set Content Status Headers & Color Indicators
-  const titleEl = document.getElementById('plant-day-title');
-  const msgEl = document.getElementById('plant-message');
-  
-  if (isReset) {
-    titleEl.innerText = "Day —";
-    msgEl.innerText = "The plant didn't give up. New leaves will grow when you continue 🌱";
-    msgEl.style.color = "#D2B48C";
-  } else {
-    titleEl.innerText = `Day ${day}`;
-    if (day <= 10) {
-      msgEl.innerText = "Day 1-10: Your journey begins small, but rooted. 🌿";
-      msgEl.style.color = "#478E47";
-    } else if (day <= 30) {
-      msgEl.innerText = "Day 11-30: Look at those steady sprouts! Keep watering your habits. 🌸";
-      msgEl.style.color = "#2E7D32";
-    } else if (day <= 50) {
-      msgEl.innerText = "Day 31-50: Halfway there! Your discipline is showing full form. 🌳";
-      msgEl.style.color = "#1B5E20";
-    } else if (day <= 70) {
-      msgEl.innerText = "Day 51-70: Almost fully grown. Beautiful blossoms are appearing! ✨";
-      msgEl.style.color = "#0D47A1";
-    } else {
-      msgEl.innerText = "You did it! Your plant is blooming! 🌸";
-      msgEl.style.color = "#C2185B";
-    }
-  }
-
-  // 3. Render Leaf & Flower Node Transformations
-  const leaves = document.querySelectorAll('.leaf, .flower');
-  leaves.forEach(el => {
-    const minDay = parseInt(el.getAttribute('data-min-day') || "1", 10);
-    el.style.transition = "transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-    
-    if (isReset) {
-      // Shrivel up completely on fall/reset condition
-      el.style.transform = "scale(0)";
-    } else if (day >= minDay) {
-      // Expand and bounce out comfortably
-      el.style.transform = "scale(1)";
-    } else {
-      // Hidden when days haven't unlocked yet
-      el.style.transform = "scale(0)";
-    }
-  });
-
-  // Toggle static leaf bed on ground layout
-  document.getElementById('fallen-leaves-layer').style.display = isReset ? 'block' : 'none';
-}
-
-// Interactivity Trigger: Complete Watering Cycle
-function waterPlant() {
-  if (plantState.isReset) {
-    // If plant was reset, watering automatically sparks regrowth life
-    plantState.isReset = false;
-    updatePlantEngine();
-    document.getElementById('plant-message').innerText = "New leaves are growing! You're stronger than ever 🌿";
-    return;
-  }
-
-  const container = document.getElementById('plant-canvas-container');
-  const plantBody = document.getElementById('plant-body');
-  
-  // Flash CSS Rain Droplet Overlay class
-  container.classList.remove('watering');
-  void container.offsetWidth; // Force Layout reflow step
-  container.classList.add('watering');
-
-  // Trigger slight structural bounce impact halfway through rain animation
-  setTimeout(() => {
-    plantBody.classList.add('plant-jump');
-    setTimeout(() => plantBody.classList.remove('plant-jump'), 500);
-  }, 400);
-}
-
-// Interactivity Trigger: Falling Autumn Reset Effect
-function resetPlant() {
-  plantState.isReset = true;
-  plantState.day = 1;
-  updatePlantEngine();
-
-  // Programmatically inject flying custom leaf entities dynamically for natural wind effect
-  const container = document.getElementById('plant-canvas-container');
-  const symbols = ['🍁', '🍂', '🍃', '🌱'];
-  
-  for (let i = 0; i < 12; i++) {
-    const leaf = document.createElement('div');
-    leaf.className = 'falling-leaf';
-    leaf.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-    leaf.style.left = `${Math.random() * 80 + 10}%`;
-    leaf.style.animationDelay = `${Math.random() * 1.5}s`;
-    leaf.style.fontSize = `${Math.random() * 12 + 16}px`;
-    
-    container.appendChild(leaf);
-    // Cleanup reference node on drop termination
-    setTimeout(() => leaf.remove(), 3500);
-  }
-}
-
-// Testing Helper Configuration
-function devAdvanceDays(amount) {
-  plantState.isReset = false;
-  plantState.day = Math.min(plantState.day + amount, 75);
-  updatePlantEngine();
-}
-
-// Bootstrap Engine Sequence on initial page render context
-document.addEventListener("DOMContentLoaded", () => {
-  updatePlantEngine();
-});
-
-
-/* ============================================================
-   BOOT
-   ============================================================ */
-function boot(){
-  profile = loadProfile();
-  if(profile && profile.setup){
-    setUnits(profile.units||"metric");
-    goal = profile.goal||"maintain";
-    startRealtimeLoop();
-    if(pendingFailure) showFailureModal();
-    renderDashboard();
-    showScreen("s-dashboard");
-  }else{
-    setUnits("metric");
-    showScreen("s-onboarding");
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  bindUI();
-  boot();
-  if("serviceWorker" in navigator){
-    navigator.serviceWorker.register("sw.js").catch(()=>{});
-  }
-});
-
-/* ----- Debug helpers ----- */
-window.Hard75Test = {
-  getProfile:()=>profile,
-  getUnlockedDay,
-  setStartHoursAgo(h){ profile.startTimestamp = new Date(Date.now()-h*3600*1000).toISOString(); saveProfile(); renderDashboard(); },
-  completeDay(n){ const d=getDayData(n); d.tasks={workout1:1,workout2:1,diet:1,water:1,read:1,photo:1}; d.water=16; d.photoIds=["test"]; d.completed=true; saveProfile(); renderDashboard(); },
-  auditPastDays,
-  runChecklist(){ console.log({unlocked:getUnlockedDay(), done:countCompletedDays(), pending:pendingFailure}); }
-};
-
-})();
-</script>
+        console.log('✅ 75 Hard Day Challenge UI Loaded Successfully');
+    </script>
 </body>
 </html>
