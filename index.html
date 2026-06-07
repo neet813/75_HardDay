@@ -73,7 +73,8 @@
     #s-gallery,
     #s-analytics,
     #s-ideas {
-      max-height: 100dvh;
+      min-height: unset !important;
+      height: 100dvh;
       overflow-y: auto;
     }
 
@@ -2670,6 +2671,60 @@
         <button type="button" class="btn-primary" id="btn-cr-save">Add reminder</button>
         <button type="button" class="btn-secondary" id="btn-cr-cancel">Cancel</button>
       </div>
+    </div>
+  </div>
+
+  <!-- MILESTONE BADGE OVERLAY -->
+  <div class="milestone-overlay" id="milestone-overlay">
+    <div class="milestone-card">
+      <div class="milestone-icon" id="milestone-icon">🏆</div>
+      <div class="milestone-day" id="milestone-day">Day 7 Unlocked</div>
+      <div class="milestone-name" id="milestone-name">Week 1 Warrior</div>
+      <p class="milestone-msg" id="milestone-msg"></p>
+      <button type="button" class="btn-primary" id="btn-milestone-close">Keep Going 💪</button>
+    </div>
+  </div>
+
+  <!-- WEEKLY REFLECTION OVERLAY -->
+  <div class="reflection-overlay" id="reflection-overlay">
+    <div class="reflection-card">
+      <div class="reflection-week-badge" id="reflection-week-badge">Week 1 Complete</div>
+      <h2 class="reflection-title">Quick Check-in 📝</h2>
+      <p class="reflection-sub">4 questions — takes 2 minutes. Completely private.</p>
+      <div class="reflection-questions">
+        <div class="reflection-q">
+          <label class="reflection-label">What was your hardest moment this week?</label>
+          <textarea class="reflection-input" id="ref-q1" placeholder="e.g. Almost skipped the 2nd workout..." rows="2"></textarea>
+        </div>
+        <div class="reflection-q">
+          <label class="reflection-label">Which day did you almost quit?</label>
+          <div class="reflection-day-picker" id="ref-q2-picker">
+            <button type="button" class="ref-day-btn" data-val="1">Mon</button>
+            <button type="button" class="ref-day-btn" data-val="2">Tue</button>
+            <button type="button" class="ref-day-btn" data-val="3">Wed</button>
+            <button type="button" class="ref-day-btn" data-val="4">Thu</button>
+            <button type="button" class="ref-day-btn" data-val="5">Fri</button>
+            <button type="button" class="ref-day-btn" data-val="6">Sat</button>
+            <button type="button" class="ref-day-btn" data-val="7">Sun</button>
+            <button type="button" class="ref-day-btn" data-val="0">None</button>
+          </div>
+        </div>
+        <div class="reflection-q">
+          <label class="reflection-label">What surprised you this week?</label>
+          <textarea class="reflection-input" id="ref-q3" placeholder="e.g. I had more energy than expected..." rows="2"></textarea>
+        </div>
+        <div class="reflection-q">
+          <label class="reflection-label">Motivation level this week</label>
+          <div class="reflection-scale">
+            <span class="scale-label">😩 1</span>
+            <input type="range" id="ref-q4" min="1" max="10" value="7" class="reflection-slider">
+            <span class="scale-label">10 🔥</span>
+          </div>
+          <div class="scale-val" id="ref-q4-val">7 / 10</div>
+        </div>
+      </div>
+      <button type="button" class="btn-primary" id="btn-reflection-save">Save Reflection</button>
+      <button type="button" class="btn-ghost" id="btn-reflection-skip">Skip for now</button>
     </div>
   </div>
 
@@ -5320,6 +5375,76 @@
         reader.readAsDataURL(file);
       });
 
+      /* ——— Weekly Reflections ——— */
+      const REFLECTION_WEEKS = [7, 14, 21, 28, 35, 42, 49, 56, 63, 70];
+
+      function checkAndShowReflection(dayNum) {
+        if (!REFLECTION_WEEKS.includes(dayNum)) return;
+        if (!profile.reflections) profile.reflections = {};
+        var week = Math.ceil(dayNum / 7);
+        if (profile.reflections["week-" + week]) return; // already done
+        // Delay slightly so day save animation settles
+        setTimeout(function() { openReflection(week); }, 600);
+      }
+
+      function openReflection(week) {
+        document.getElementById("reflection-week-badge").textContent = "Week " + week + " Complete 🎯";
+        // Reset form
+        document.getElementById("ref-q1").value = "";
+        document.getElementById("ref-q3").value = "";
+        document.getElementById("ref-q4").value = 7;
+        document.getElementById("ref-q4-val").textContent = "7 / 10";
+        document.querySelectorAll(".ref-day-btn").forEach(function(b) { b.classList.remove("selected"); });
+        document.getElementById("reflection-overlay").classList.add("visible");
+        document.getElementById("reflection-overlay").dataset.week = week;
+      }
+
+      function saveReflection() {
+        var overlay = document.getElementById("reflection-overlay");
+        var week = overlay.dataset.week;
+        if (!profile.reflections) profile.reflections = {};
+        var selectedDay = null;
+        document.querySelectorAll(".ref-day-btn.selected").forEach(function(b) { selectedDay = b.dataset.val; });
+        profile.reflections["week-" + week] = {
+          week: parseInt(week),
+          savedAt: new Date().toISOString(),
+          hardestMoment: document.getElementById("ref-q1").value.trim(),
+          almostQuitDay: selectedDay,
+          surprise: document.getElementById("ref-q3").value.trim(),
+          motivation: parseInt(document.getElementById("ref-q4").value)
+        };
+        saveProfile();
+        overlay.classList.remove("visible");
+        // Small toast
+        var toast = document.createElement("div");
+        toast.textContent = "✅ Week " + week + " reflection saved";
+        toast.style.cssText = "position:fixed;bottom:6rem;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);color:#fff;padding:0.75rem 1.25rem;border-radius:0.75rem;font-size:0.875rem;font-weight:600;z-index:9999;";
+        document.body.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, 3000);
+      }
+
+      // Day picker selection
+      document.querySelectorAll(".ref-day-btn").forEach(function(btn) {
+        btn.addEventListener("click", function() {
+          document.querySelectorAll(".ref-day-btn").forEach(function(b) { b.classList.remove("selected"); });
+          btn.classList.add("selected");
+        });
+      });
+
+      // Slider live value
+      var _rq4 = document.getElementById("ref-q4");
+      if (_rq4) _rq4.addEventListener("input", function() {
+        var v = document.getElementById("ref-q4-val");
+        if (v) v.textContent = this.value + " / 10";
+      });
+
+      var _brs = document.getElementById("btn-reflection-save");
+      if (_brs) _brs.addEventListener("click", saveReflection);
+      var _brsk = document.getElementById("btn-reflection-skip");
+      if (_brsk) _brsk.addEventListener("click", function() {
+        document.getElementById("reflection-overlay").classList.remove("visible");
+      });
+
       document.getElementById("btn-save-day").addEventListener("click", function () {
         const data = getDayData(currentDay);
         data.time = dayTimeEl.value;
@@ -5334,7 +5459,17 @@
         renderDashboard();
         document.getElementById("btn-share-day").style.display = data.completed ? "block" : "none";
         showScreen("dashboard");
+        if (data.completed) checkAndShowReflection(currentDay);
       });
+
+      var _bmc = document.getElementById("btn-milestone-close");
+      if (_bmc) _bmc.addEventListener("click", function () {
+        var mo = document.getElementById("milestone-overlay");
+        if (mo) mo.classList.remove("visible");
+      });
+
+      var _bug = document.getElementById("btn-use-grace");
+      if (_bug) _bug.addEventListener("click", function () { useGraceDay(); });
 
       document.getElementById("btn-confirm-reset").addEventListener("click", function () {
         executeChallengeReset();
